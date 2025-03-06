@@ -38,11 +38,11 @@ const Login = ({ onLogin }) => {
       const data = await response.json();
       
       if (!response.ok) {
-        switch (response.status) {
-          case 401:
+        switch (data.code) {
+          case 'USER_NOT_FOUND':
             setError(
               <div>
-                Invalid credentials.{' '}
+                User not found.{' '}
                 <button 
                   className="inline-button"
                   onClick={() => setShowRegister(true)}
@@ -52,11 +52,11 @@ const Login = ({ onLogin }) => {
               </div>
             );
             break;
-          case 400:
-            setError(data.error || 'Invalid login data');
+          case 'INVALID_PASSWORD':
+            setError('Incorrect password. Please try again.');
             break;
           default:
-            throw new Error(data.error || `Login failed (${response.status})`);
+            setError(data.error || 'Login failed');
         }
         return;
       }

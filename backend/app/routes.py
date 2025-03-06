@@ -87,20 +87,25 @@ def login():
             return jsonify({'error': 'Username and password are required'}), 400
 
         user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            login_user(user, remember=True)
-            response = jsonify({
-                'message': 'Login successful',
-                'user': {
-                    'id': user.id,
-                    'username': user.username
-                }
-            })
-            response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            return response, 200
-        else:
-            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Separate error messages for different cases
+        if not user:
+            return jsonify({'error': 'User not found', 'code': 'USER_NOT_FOUND'}), 401
+        elif not check_password_hash(user.password, password):
+            return jsonify({'error': 'Incorrect password', 'code': 'INVALID_PASSWORD'}), 401
+            
+        # If we get here, both username and password are correct
+        login_user(user, remember=True)
+        response = jsonify({
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'username': user.username
+            }
+        })
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
             
     except Exception as e:
         print(f"Login error: {str(e)}")
