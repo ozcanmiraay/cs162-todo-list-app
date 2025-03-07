@@ -16,8 +16,8 @@ def get_or_generate_secret_key():
     return secret_key
 
 class Config:
-    # Set a secure secret key
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key'
+    # Set a fixed secret key for development
+    SECRET_KEY = get_or_generate_secret_key()
     
     # Database configuration
     SQLALCHEMY_DATABASE_URI = 'sqlite:///todo.db'
@@ -26,8 +26,14 @@ class Config:
     # Session configuration
     SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Changed back to 'Lax' for HTTP development
+    SESSION_COOKIE_NAME = 'session'
+    SESSION_COOKIE_DOMAIN = None  # Remove domain restriction for localhost
+    SESSION_COOKIE_PATH = '/'
+    
+    # Make sessions permanent by default
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+    SESSION_PERMANENT = True
     
     # CORS settings
-    CORS_HEADERS = 'Content-Type'
+    CORS_HEADERS = ['Content-Type', 'Authorization', 'Accept']

@@ -9,7 +9,7 @@ const TodoList = ({ list, onUpdateList }) => {
 
   const handleUpdateName = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/list/${list.id}/edit`, {
+      const response = await fetch(`/list/${list.id}/edit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

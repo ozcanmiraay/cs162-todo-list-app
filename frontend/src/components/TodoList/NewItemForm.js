@@ -6,7 +6,7 @@ const NewItemForm = ({ listId, onItemAdded, parentId = null, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/list/${listId}/item/new`, {
+      const response = await fetch(`/list/${listId}/item/new`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

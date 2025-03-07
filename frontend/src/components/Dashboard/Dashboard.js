@@ -1,14 +1,12 @@
 import React from 'react';
 import Header from './Header';
+import TodoDashboard from './TodoDashboard';
 
-const Dashboard = ({ onLogout }) => {
+const Dashboard = ({ onLogout, user }) => {
   return (
     <div className="dashboard-container">
-      <Header onLogout={onLogout} />
-      <div className="dashboard-content">
-        {/* Your todo lists will go here */}
-        <p>Welcome to your Todo Dashboard!</p>
-      </div>
+      <Header onLogout={onLogout} username={user?.username} />
+      <TodoDashboard />
     </div>
   );
 };

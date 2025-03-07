@@ -9,7 +9,7 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
 
   const handleComplete = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/item/${item.id}/complete`, {
+      const response = await fetch(`/item/${item.id}/complete`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -24,7 +24,7 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
 
   const handleUpdateDescription = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/item/${item.id}/edit`, {
+      const response = await fetch(`/item/${item.id}/edit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

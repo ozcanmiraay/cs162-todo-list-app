@@ -25,17 +25,21 @@ const Login = ({ onLogin }) => {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/login', {
+      console.log("Sending login request...");
+      const response = await fetch('/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ username, password })
       });
 
+      console.log("Login response:", response);
+      console.log("Response headers:", response.headers);
+      
       const data = await response.json();
+      console.log("Login response data:", data);
       
       if (!response.ok) {
         switch (data.code) {
@@ -61,7 +65,9 @@ const Login = ({ onLogin }) => {
         return;
       }
       
-      onLogin(data);
+      console.log("After login, cookies:", document.cookie);
+      // If login is successful, call onLogin with the user data
+      onLogin(data.user);
     } catch (error) {
       console.error('Login error:', error);
       setError('Login failed. Please try again later.');
