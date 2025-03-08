@@ -1,14 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import NewItemForm from './NewItemForm';
+import DraggableItem from './DraggableItem';
+import Tooltip from '../common/Tooltip';
 
 const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(item.isCollapsed || false);
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(item.description);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
   const [availableLists, setAvailableLists] = useState([]);
   const [showMoveOptions, setShowMoveOptions] = useState(false);
-  const [targetListId, setTargetListId] = useState('');
+  const moveMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (item.isCollapsed !== isCollapsed) {
+      const updateCollapseState = async () => {
+        try {
+          const collapseStateKey = `collapse_state_${item.id}`;
+          localStorage.setItem(collapseStateKey, JSON.stringify(isCollapsed));
+        } catch (error) {
+          console.error('Error saving collapse state:', error);
+        }
+      };
+      
+      updateCollapseState();
+    }
+  }, [isCollapsed, item.id, item.isCollapsed]);
+  
+  useEffect(() => {
+    try {
+      const collapseStateKey = `collapse_state_${item.id}`;
+      const savedState = localStorage.getItem(collapseStateKey);
+      if (savedState !== null) {
+        setIsCollapsed(JSON.parse(savedState));
+      }
+    } catch (error) {
+      console.error('Error loading collapse state:', error);
+    }
+  }, [item.id]);
+
+  // Close the move menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (moveMenuRef.current && !moveMenuRef.current.contains(event.target)) {
+        setShowMoveOptions(false);
+      }
+    };
+
+    if (showMoveOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMoveOptions]);
 
   const handleComplete = async () => {
     try {
@@ -82,9 +128,7 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
     }
   };
 
-  const handleMoveItem = async () => {
-    if (!targetListId) return;
-    
+  const handleMoveItem = async (targetListId) => {
     try {
       const response = await fetch(`/item/${item.id}/move`, {
         method: 'POST',
@@ -98,6 +142,8 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
       if (response.ok) {
         setShowMoveOptions(false);
         onUpdate();
+      } else {
+        console.error('Error moving item:', await response.json());
       }
     } catch (error) {
       console.error('Error moving item:', error);
@@ -111,13 +157,15 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
     <div className={`todo-item depth-${depth} ${item.complete ? 'completed' : ''}`}>
       <div className="item-content">
         {hasChildren && (
-          <button 
-            className="collapse-button"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            aria-label={isCollapsed ? "Expand" : "Collapse"}
-          >
-            {isCollapsed ? '▶' : '▼'}
-          </button>
+          <Tooltip text={isCollapsed ? "Expand sub-items" : "Collapse sub-items"}>
+            <button 
+              className="collapse-button"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              aria-label={isCollapsed ? "Expand" : "Collapse"}
+            >
+              {isCollapsed ? '▶' : '▼'}
+            </button>
+          </Tooltip>
         )}
         
         {isEditing ? (
@@ -138,43 +186,89 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
             >
               {item.description}
             </span>
+            {depth === 0 && (
+              <Tooltip text="Drag to move to another list">
+                <span className="drag-handle">
+                  ⋮⋮
+                </span>
+              </Tooltip>
+            )}
           </div>
         )}
 
         <div className="item-actions">
-          <button onClick={handleComplete}>
-            {item.complete ? 'Undo' : 'Complete'}
-          </button>
-          <button onClick={() => setIsEditing(true)}>Edit</button>
-          <button onClick={handleDelete} className="delete-button">
-            Delete
-          </button>
-          {canAddSubItems && !isAddingSubItem && (
-            <button onClick={() => setIsAddingSubItem(true)}>
-              Add Sub-item
+          <Tooltip text="Complete this item" position="bottom">
+            <button 
+              className="action-button complete-button" 
+              onClick={handleComplete}
+            >
+              {item.complete ? '✓' : '○'}
             </button>
+          </Tooltip>
+          
+          <Tooltip text="Edit item">
+            <button 
+              className="action-button edit-button" 
+              onClick={() => setIsEditing(true)}
+            >
+              ✎
+            </button>
+          </Tooltip>
+          
+          <Tooltip text="Delete item">
+            <button 
+              className="action-button delete-button" 
+              onClick={handleDelete}
+            >
+              🗑
+            </button>
+          </Tooltip>
+          
+          {canAddSubItems && !isAddingSubItem && (
+            <Tooltip text="Add sub-item">
+              <button 
+                className="action-button add-sub-button" 
+                onClick={() => setIsAddingSubItem(true)}
+              >
+                +
+              </button>
+            </Tooltip>
           )}
           
           {depth === 0 && (
-            <button onClick={handleShowMoveOptions}>Move</button>
+            <div className="move-dropdown" ref={moveMenuRef}>
+              <Tooltip text="Move to another list" position="left">
+                <button 
+                  className="action-button move-button" 
+                  onClick={handleShowMoveOptions}
+                >
+                  ↗
+                </button>
+              </Tooltip>
+              
+              {showMoveOptions && (
+                <div className="move-menu">
+                  <div className="move-menu-header">Move to list:</div>
+                  {availableLists.length > 0 ? (
+                    <ul className="move-menu-list">
+                      {availableLists.map(list => (
+                        <li 
+                          key={list.id} 
+                          className="move-menu-item"
+                          onClick={() => handleMoveItem(list.id)}
+                        >
+                          {list.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="move-menu-empty">No other lists available</div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
-
-        {depth === 0 && showMoveOptions && (
-          <div className="move-options">
-            <select 
-              value={targetListId} 
-              onChange={(e) => setTargetListId(e.target.value)}
-            >
-              <option value="">Select a list</option>
-              {availableLists.map(list => (
-                <option key={list.id} value={list.id}>{list.name}</option>
-              ))}
-            </select>
-            <button onClick={handleMoveItem}>Move</button>
-            <button onClick={() => setShowMoveOptions(false)}>Cancel</button>
-          </div>
-        )}
       </div>
 
       {isAddingSubItem && (
@@ -194,7 +288,7 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
       {!isCollapsed && hasChildren && (
         <div className="sub-items">
           {item.children.map((child) => (
-            <TodoItem
+            <DraggableItem
               key={child.id}
               item={child}
               onUpdate={onUpdate}

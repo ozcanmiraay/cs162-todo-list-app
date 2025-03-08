@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import Login from './components/Auth/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import './styles/Auth.css';
 import './styles/Dashboard.css';
 import './styles/TodoList.css';
+import './styles/Responsive.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -83,7 +86,9 @@ function App() {
   return (
     <div className="app">
       {isLoggedIn && user ? (
-        <Dashboard onLogout={handleLogout} user={user} />
+        <DndProvider backend={HTML5Backend}>
+          <Dashboard onLogout={handleLogout} user={user} />
+        </DndProvider>
       ) : (
         <Login onLogin={handleLogin} />
       )}

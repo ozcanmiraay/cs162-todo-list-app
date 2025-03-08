@@ -1,0 +1,29 @@
+.lists-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .lists-container {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .lists-container {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 35px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .lists-container {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 40px;
+  }
+} 

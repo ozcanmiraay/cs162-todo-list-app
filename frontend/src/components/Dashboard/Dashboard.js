@@ -6,7 +6,9 @@ const Dashboard = ({ onLogout, user }) => {
   return (
     <div className="dashboard-container">
       <Header onLogout={onLogout} username={user?.username} />
-      <TodoDashboard />
+      <div className="dashboard-content">
+        <TodoDashboard />
+      </div>
     </div>
   );
 };

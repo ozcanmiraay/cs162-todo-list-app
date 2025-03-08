@@ -1,0 +1,94 @@
+/* Add this to your App.css or create a new Typography.css */
+html {
+  font-size: var(--base-font-size);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  color: #333;
+}
+
+h1 {
+  font-size: calc(1.5rem + 1vw);
+}
+
+h2 {
+  font-size: calc(1.3rem + 0.6vw);
+}
+
+h3 {
+  font-size: calc(1.1rem + 0.4vw);
+}
+
+p, button, input, textarea {
+  font-size: 1rem;
+}
+
+@media (min-width: 1800px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+/* Add this to your App.css */
+.app-container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0 10px;
+  }
+}
+
+/* Add these additional responsive styles */
+
+/* Base app container */
+.app {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* Ensure proper scaling for all screens */
+* {
+  box-sizing: border-box;
+}
+
+/* Responsive font scaling */
+@media screen and (min-width: 1200px) {
+  body {
+    font-size: 16px;
+  }
+  
+  button, input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+@media screen and (min-width: 1800px) {
+  body {
+    font-size: 18px;
+  }
+  
+  button, input, select, textarea {
+    font-size: 18px;
+  }
+}
+
+/* Ensure the app container scales properly */
+.app-container {
+  width: 100%;
+  max-width: var(--container-width, 1200px);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media screen and (min-width: 1800px) {
+  .app-container {
+    max-width: var(--container-width, 1600px);
+  }
+} 

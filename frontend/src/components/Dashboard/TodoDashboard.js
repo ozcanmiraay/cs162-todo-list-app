@@ -72,6 +72,50 @@ const TodoDashboard = () => {
     }
   };
 
+  // This function is used by the DraggableItem component
+  const handleItemMove = async (item, targetListId) => {
+    try {
+      // Save the collapse state of all items before the move
+      const allCollapseStates = {};
+      lists.forEach(list => {
+        list.items.forEach(item => {
+          const collapseStateKey = `collapse_state_${item.id}`;
+          const savedState = localStorage.getItem(collapseStateKey);
+          if (savedState !== null) {
+            allCollapseStates[item.id] = JSON.parse(savedState);
+          }
+        });
+      });
+      
+      const response = await fetch(`/item/${item.id}/move`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ target_list_id: targetListId }),
+      });
+
+      if (response.ok) {
+        // After successful move, fetch all lists again
+        fetchLists();
+        
+        // After a short delay to ensure lists are fetched, restore collapse states
+        setTimeout(() => {
+          // Restore collapse states from our saved object
+          Object.entries(allCollapseStates).forEach(([itemId, isCollapsed]) => {
+            const collapseStateKey = `collapse_state_${itemId}`;
+            localStorage.setItem(collapseStateKey, JSON.stringify(isCollapsed));
+          });
+        }, 500);
+      } else {
+        console.error('Error moving item:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error moving item:', error);
+    }
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -105,6 +149,7 @@ const TodoDashboard = () => {
                 key={list.id}
                 list={list}
                 onUpdate={fetchLists}
+                onItemMove={handleItemMove}
               />
             ))
           )}
