@@ -7,6 +7,7 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showRegister, setShowRegister] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Clear messages when switching views
   useEffect(() => {
@@ -18,9 +19,11 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setIsLoading(true);
     
     if (!username.trim() || !password.trim()) {
       setError('Username and password are required');
+      setIsLoading(false);
       return;
     }
 
@@ -45,13 +48,13 @@ const Login = ({ onLogin }) => {
         switch (data.code) {
           case 'USER_NOT_FOUND':
             setError(
-              <div>
+              <div className="error-content">
                 User not found.{' '}
                 <button 
                   className="inline-button"
                   onClick={() => setShowRegister(true)}
                 >
-                  Register Now
+                  Register
                 </button>
               </div>
             );
@@ -62,6 +65,7 @@ const Login = ({ onLogin }) => {
           default:
             setError(data.error || 'Login failed');
         }
+        setIsLoading(false);
         return;
       }
       
@@ -71,6 +75,7 @@ const Login = ({ onLogin }) => {
     } catch (error) {
       console.error('Login error:', error);
       setError('Login failed. Please try again later.');
+      setIsLoading(false);
     }
   };
 
@@ -83,44 +88,60 @@ const Login = ({ onLogin }) => {
   };
 
   if (showRegister) {
-    return <Register onRegisterSuccess={handleRegisterSuccess} />;
+    return (
+      <div className="auth-page">
+        <div className="title-container">
+          <h1 className="app-title">Task<span>Master</span></h1>
+          <p className="app-subtitle">Organize your life, one task at a time</p>
+        </div>
+        <Register onRegisterSuccess={handleRegisterSuccess} />
+      </div>
+    );
   }
 
   return (
-    <div className="auth-container">
-      <h2>Login</h2>
-      {error && <div className="error-message">{error}</div>}
-      {success && <div className="success-message">{success}</div>}
-      <form onSubmit={handleSubmit} className="auth-form">
-        <div className="form-group">
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-      <p className="auth-switch">
-        Don't have an account?{' '}
-        <button 
-          className="link-button"
-          onClick={() => setShowRegister(true)}
-        >
-          Register
-        </button>
-      </p>
+    <div className="auth-page">
+      <div className="title-container">
+        <h1 className="app-title">Task<span>Master</span></h1>
+        <p className="app-subtitle">Organize your life, one task at a time</p>
+      </div>
+      <div className="auth-container">
+        <h2>Welcome Back</h2>
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+        <p className="auth-switch">
+          Don't have an account?{' '}
+          <button 
+            className="link-button"
+            onClick={() => setShowRegister(true)}
+          >
+            Register
+          </button>
+        </p>
+      </div>
     </div>
   );
 };

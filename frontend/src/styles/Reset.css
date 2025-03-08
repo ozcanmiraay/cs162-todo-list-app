@@ -1,0 +1,26 @@
+/* Reset CSS for auth pages */
+.auth-container * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.auth-container button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.auth-container input {
+  font: inherit;
+}
+
+.auth-container a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.auth-container ul, .auth-container ol {
+  list-style: none;
+} 

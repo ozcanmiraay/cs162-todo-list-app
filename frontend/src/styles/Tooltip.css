@@ -1,7 +1,6 @@
 .tooltip-container {
   position: relative;
-  display: inline-flex;
-  z-index: 100;
+  display: inline-block;
 }
 
 .tooltip-container .tooltip-text {
@@ -75,9 +74,22 @@
 /* Portal tooltip styles */
 .tooltip-portal {
   position: fixed;
-  z-index: 9999;
-  margin: 5px;
+  background-color: #2d3748;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10000;
   pointer-events: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  animation: tooltipFadeIn 0.2s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Remove the fixed positioning for tooltips in scrollable containers */
@@ -105,20 +117,48 @@
 }
 
 /* Position-specific adjustments */
-.tooltip-top {
-  margin-top: -10px;
+.tooltip-top::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #2d3748 transparent transparent transparent;
 }
 
-.tooltip-bottom {
-  margin-top: 10px;
+.tooltip-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #2d3748 transparent;
 }
 
-.tooltip-left {
-  margin-left: -10px;
+.tooltip-left::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent transparent #2d3748;
 }
 
-.tooltip-right {
-  margin-left: 10px;
+.tooltip-right::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #2d3748 transparent transparent;
 }
 
 /* Make sure tooltips don't overlap with other elements */

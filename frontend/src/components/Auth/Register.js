@@ -6,25 +6,30 @@ const Register = ({ onRegisterSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
+    setIsLoading(true);
 
     // Client-side validations
     if (!username.trim() || !password.trim()) {
       setError('Username and password are required');
+      setIsLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
+      setIsLoading(false);
       return;
     }
 
@@ -63,6 +68,7 @@ const Register = ({ onRegisterSuccess }) => {
           default:
             throw new Error(data.error || `Registration failed (${response.status})`);
         }
+        setIsLoading(false);
         return;
       }
 
@@ -74,19 +80,20 @@ const Register = ({ onRegisterSuccess }) => {
     } catch (error) {
       console.error('Registration error:', error);
       setError('Registration failed. Please try again later.');
+      setIsLoading(false);
     }
   };
 
   if (success) {
     return (
       <div className="auth-container">
-        <h2>Registration Successful!</h2>
-        <div className="success-message">
-          Your account has been created successfully.
-        </div>
-        <div className="auth-switch" style={{ marginTop: '2rem' }}>
+        <h2 className="success-title">Registration Successful!</h2>
+        <div className="registration-success">
+          <div className="success-message">
+            Your account has been created successfully!
+          </div>
           <button 
-            className="button-primary"
+            className="proceed-button"
             onClick={() => onRegisterSuccess()}
           >
             Proceed to Login
@@ -98,7 +105,7 @@ const Register = ({ onRegisterSuccess }) => {
 
   return (
     <div className="auth-container">
-      <h2>Register</h2>
+      <h2>Create Account</h2>
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="form-group">
@@ -131,7 +138,9 @@ const Register = ({ onRegisterSuccess }) => {
             required
           />
         </div>
-        <button type="submit">Register</button>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating Account...' : 'Register'}
+        </button>
       </form>
       <p className="auth-switch">
         Already have an account?{' '}

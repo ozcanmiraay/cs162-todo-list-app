@@ -3,6 +3,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Login from './components/Auth/Login';
 import Dashboard from './components/Dashboard/Dashboard';
+import './styles/Reset.css';
 import './styles/Auth.css';
 import './styles/Dashboard.css';
 import './styles/TodoList.css';
