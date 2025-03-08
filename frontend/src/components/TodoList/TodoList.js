@@ -1,214 +1,170 @@
 import React, { useState, useEffect } from 'react';
 import { useDrop } from 'react-dnd';
-import DraggableItem from './DraggableItem';
+import TodoItem from './TodoItem';
 import NewItemForm from './NewItemForm';
 import Tooltip from '../common/Tooltip';
-import '../../styles/TodoList.css';
 
-const TodoList = ({ list, onUpdate, onItemMove }) => {
+const TodoList = ({ 
+  list, 
+  onUpdateList, 
+  onDeleteList, 
+  onAddItem,
+  onToggleComplete,
+  onUpdateItem,
+  onDeleteItem,
+  onAddSubItem,
+  onMoveItem,
+  allLists
+}) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [listName, setListName] = useState(list.name);
-  const [isAddingItem, setIsAddingItem] = useState(false);
-  const [dropIndicatorVisible, setDropIndicatorVisible] = useState(false);
-  const [draggedItemInfo, setDraggedItemInfo] = useState(null);
-  const [items, setItems] = useState(list.items || []);
-  
-  // Use effect to update items when list.items changes
-  useEffect(() => {
-    if (list.items) {
-      // Apply saved collapse states to the items
-      const itemsWithCollapseState = list.items.map(item => {
-        try {
-          const collapseStateKey = `collapse_state_${item.id}`;
-          const savedState = localStorage.getItem(collapseStateKey);
-          if (savedState !== null) {
-            return { ...item, isCollapsed: JSON.parse(savedState) };
-          }
-        } catch (error) {
-          console.error('Error loading collapse state:', error);
-        }
-        return item;
-      });
-      
-      setItems(itemsWithCollapseState);
-    }
-  }, [list.items]);
+  const [editedName, setEditedName] = useState(list.name);
+  const [showNewItemForm, setShowNewItemForm] = useState(false);
+  const [isOver, setIsOver] = useState(false);
 
-  // Set up drop target
-  const [{ isOver, canDrop }, drop] = useDrop(() => ({
+  // Set up drop functionality
+  const [{ isOverCurrent }, drop] = useDrop({
     accept: 'TODO_ITEM',
-    drop: (item) => handleItemDrop(item),
-    hover: (item) => {
-      setDropIndicatorVisible(true);
-      setDraggedItemInfo(item);
+    drop: (item) => {
+      if (item.sourceListId !== list.id) {
+        onMoveItem({ id: item.id }, list.id);
+      }
     },
-    canDrop: (item) => item.sourceListId !== list.id,
     collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-      canDrop: !!monitor.canDrop(),
+      isOverCurrent: monitor.isOver({ shallow: true }),
     }),
-  }));
+    hover: () => {
+      setIsOver(true);
+    },
+    canDrop: (item) => item.sourceListId !== list.id && item.depth === 0,
+  });
 
-  const handleItemDrop = async (item) => {
-    setDropIndicatorVisible(false);
+  // Reset isOver when not hovering
+  useEffect(() => {
+    if (!isOverCurrent) {
+      setIsOver(false);
+    }
+  }, [isOverCurrent]);
+
+  // Add a useEffect to log when the component mounts or updates
+  useEffect(() => {
+    console.log('TodoList component mounted/updated with list:', list);
+    // Make sure we're not calling onUpdateList here
+  }, [list]);
+
+  const handleEditSubmit = () => {
+    const trimmedName = editedName.trim();
     
-    if (onItemMove) {
-      // Use the parent component's move function to preserve collapse states
-      onItemMove(item, list.id);
-    } else {
-      try {
-        const response = await fetch(`/item/${item.id}/move`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({ target_list_id: list.id }),
-        });
-
-        if (response.ok) {
-          onUpdate();
-        } else {
-          console.error('Error moving item:', await response.json());
-        }
-      } catch (error) {
-        console.error('Error moving item:', error);
-        handleDragError(error);
-      }
+    if (trimmedName && trimmedName !== list.name) {
+      const listId = list.id;
+      console.log('Updating list with ID:', listId, 'and new name:', trimmedName);
+      onUpdateList(listId, trimmedName);
     }
+    setIsEditing(false);
   };
 
-  const handleDragError = (error) => {
-    console.error('Drag and drop error:', error);
-    alert('There was an error moving the item. Please try again.');
-    onUpdate(); // Refresh the lists to ensure UI is in sync with server
-  };
-
-  const handleUpdateName = async () => {
-    try {
-      const response = await fetch(`/list/${list.id}/edit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ name: listName }),
-      });
-
-      if (response.ok) {
-        setIsEditing(false);
-        onUpdate();
-      } else {
-        const errorData = await response.json();
-        console.error('Error updating list:', errorData);
-      }
-    } catch (error) {
-      console.error('Error updating list:', error);
-    }
-  };
-
-  const handleDeleteList = async () => {
-    if (!window.confirm('Are you sure you want to delete this list and all its items?')) {
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/list/${list.id}/delete`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        onUpdate();
-      } else {
-        const errorData = await response.json();
-        console.error('Error deleting list:', errorData);
-        alert(`Failed to delete list: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error deleting list:', error);
-      alert('Network error while trying to delete list. Please try again.');
-    }
+  const handleAddItem = (description) => {
+    onAddItem(list.id, description);
+    setShowNewItemForm(false);
   };
 
   return (
     <div 
       ref={drop} 
-      className={`todo-list ${isOver && canDrop ? 'drop-target' : ''} ${dropIndicatorVisible && canDrop ? 'drop-indicator' : ''}`}
-      onDragLeave={() => {
-        setDropIndicatorVisible(false);
-        setDraggedItemInfo(null);
-      }}
+      className={`list-card ${isOver ? 'drop-target' : ''}`}
     >
-      <div className="list-header">
+      <div className={`list-header ${isEditing ? 'editing' : ''}`}>
         {isEditing ? (
-          <div className="edit-form">
-            <input
-              type="text"
-              value={listName}
-              onChange={(e) => setListName(e.target.value)}
-            />
-            <button onClick={handleUpdateName}>Save</button>
-            <button onClick={() => setIsEditing(false)}>Cancel</button>
-          </div>
-        ) : (
-          <div>
-            <h3>{list.name}</h3>
+          <>
+            <div className="list-edit-container">
+              <input
+                type="text"
+                className="list-title-input"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleEditSubmit()}
+                autoFocus
+              />
+              <button 
+                className="save-edit-button"
+                onClick={handleEditSubmit}
+              >
+                Save
+              </button>
+            </div>
             <div className="list-actions">
-              <Tooltip text="Edit list name" position="bottom">
-                <button onClick={() => setIsEditing(true)}>Edit</button>
-              </Tooltip>
-              <Tooltip text="Delete this list" position="bottom">
-                <button onClick={handleDeleteList} className="delete-button">Delete</button>
+              <Tooltip text="Cancel">
+                <button 
+                  className="list-action-button"
+                  onClick={() => setIsEditing(false)}
+                >
+                  ❌
+                </button>
               </Tooltip>
             </div>
-          </div>
+          </>
+        ) : (
+          <>
+            <h3 className="list-title">{list.name}</h3>
+            <div className="list-actions">
+              <Tooltip text="Edit list">
+                <button 
+                  className="list-action-button"
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditedName(list.name);
+                  }}
+                >
+                  ✏️
+                </button>
+              </Tooltip>
+              <Tooltip text="Delete list">
+                <button 
+                  className="list-action-button"
+                  onClick={() => onDeleteList(list.id)}
+                >
+                  🗑️
+                </button>
+              </Tooltip>
+            </div>
+          </>
         )}
       </div>
-      
-      {isOver && canDrop && draggedItemInfo && (
-        <div className="drop-preview">
-          <div className="drop-preview-content">
-            <span className="drop-preview-icon">↓</span>
-            <span className="drop-preview-text">
-              Moving: <strong>{draggedItemInfo.description}</strong>
-            </span>
-          </div>
-        </div>
-      )}
       
       <div className="list-items">
-        <div className="items-scroll-container">
-          {items && items.length > 0 ? (
-            items.map((item) => (
-              <DraggableItem
-                key={item.id}
-                item={item}
-                onUpdate={onUpdate}
-                listId={list.id}
-                depth={0}
-              />
-            ))
-          ) : (
-            <div className="empty-list">
-              <p>This list is empty. Add your first item!</p>
-            </div>
-          )}
-        </div>
-        
-        {isAddingItem ? (
-          <NewItemForm 
-            listId={list.id}
-            onItemAdded={() => {
-              setIsAddingItem(false);
-              onUpdate();
-            }}
-            onCancel={() => setIsAddingItem(false)}
-          />
+        {list.items && list.items.length > 0 ? (
+          list.items.map(item => (
+            <TodoItem
+              key={item.id}
+              item={{...item, depth: 0}} // Top level items have depth 0
+              listId={list.id}
+              onToggleComplete={onToggleComplete}
+              onUpdateItem={onUpdateItem}
+              onDeleteItem={onDeleteItem}
+              onAddSubItem={onAddSubItem}
+              onMoveItem={onMoveItem}
+              allLists={allLists}
+            />
+          ))
         ) : (
-          <button onClick={() => setIsAddingItem(true)}>Add Item</button>
+          <div className="empty-items-message">
+            No items in this list yet.
+          </div>
         )}
       </div>
+      
+      {showNewItemForm ? (
+        <NewItemForm 
+          onSubmit={handleAddItem}
+          onCancel={() => setShowNewItemForm(false)}
+        />
+      ) : (
+        <button 
+          className="add-item-button"
+          onClick={() => setShowNewItemForm(true)}
+        >
+          Add Item
+        </button>
+      )}
     </div>
   );
 };

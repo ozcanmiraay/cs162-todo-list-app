@@ -641,3 +641,32 @@ def before_request():
     print(f"Current user authenticated: {current_user.is_authenticated}")
     if current_user.is_authenticated:
         print(f"Current user id: {current_user.id}")
+
+@app.route('/api/lists/<int:list_id>', methods=['PUT'])
+@login_required
+def update_list(list_id):
+    data = request.get_json()
+    print(f"Update list request data: {data}")
+    
+    if not data:
+        return jsonify({'error': 'Missing request data'}), 400
+    
+    if 'name' not in data:
+        return jsonify({'error': 'Missing list name in request data'}), 400
+    
+    todo_list = TodoList.query.filter_by(id=list_id, user_id=current_user.id).first()
+    
+    if not todo_list:
+        return jsonify({'error': 'List not found'}), 404
+    
+    todo_list.name = data['name']
+    db.session.commit()
+    
+    # Return a simplified response without using to_dict()
+    return jsonify({
+        'message': 'List updated successfully', 
+        'list': {
+            'id': todo_list.id,
+            'name': todo_list.name
+        }
+    })

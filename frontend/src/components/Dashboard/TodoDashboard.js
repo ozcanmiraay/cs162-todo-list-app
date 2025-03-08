@@ -2,14 +2,25 @@ import React, { useState, useEffect } from 'react';
 import TodoList from '../TodoList/TodoList';
 import '../../styles/Dashboard.css';
 
-const TodoDashboard = () => {
-  const [lists, setLists] = useState([]);
+const TodoDashboard = ({ 
+  lists, 
+  loading, 
+  onUpdateList,
+  onDeleteList,
+  onAddItem,
+  onToggleComplete,
+  onUpdateItem,
+  onDeleteItem,
+  onAddSubItem,
+  onMoveItem,
+  allLists
+}) => {
   const [newListName, setNewListName] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const fetchLists = async () => {
-    setIsLoading(true);
+    setError('');
     try {
       const response = await fetch('/api/lists', {
         method: 'GET',
@@ -22,7 +33,7 @@ const TodoDashboard = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setLists(data.lists);
+        onUpdateList(data.lists);
         setError('');
       } else {
         const errorData = await response.json();
@@ -31,8 +42,6 @@ const TodoDashboard = () => {
     } catch (error) {
       setError('Network error. Please try again.');
       console.error('Error fetching lists:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -61,6 +70,7 @@ const TodoDashboard = () => {
 
       if (response.ok) {
         setNewListName('');
+        setShowCreateForm(false);
         fetchLists();
       } else {
         const errorData = await response.json();
@@ -116,45 +126,41 @@ const TodoDashboard = () => {
     }
   };
 
-  return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">My Todo Lists</h1>
-      </div>
-      
-      <form className="new-list-form" onSubmit={handleCreateList}>
-        <input
-          type="text"
-          value={newListName}
-          onChange={(e) => setNewListName(e.target.value)}
-          placeholder="Enter new list name"
-          required
-        />
-        <button type="submit">Create List</button>
-      </form>
-      
-      {error && <div className="error-message">{error}</div>}
-      
-      {isLoading ? (
+  if (loading) {
+    return (
+      <div className="loading-state">
         <div className="loading-spinner"></div>
-      ) : (
-        <div className="lists-container">
-          {lists.length === 0 ? (
-            <div className="empty-state">
-              <p>You don't have any lists yet. Create your first list above!</p>
-            </div>
-          ) : (
-            lists.map(list => (
-              <TodoList
-                key={list.id}
-                list={list}
-                onUpdate={fetchLists}
-                onItemMove={handleItemMove}
-              />
-            ))
-          )}
-        </div>
-      )}
+        <p>Loading your todo lists...</p>
+      </div>
+    );
+  }
+
+  if (lists.length === 0) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon">📋</div>
+        <p className="empty-state-text">You don't have any todo lists yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lists-container">
+      {lists.map(list => (
+        <TodoList
+          key={list.id}
+          list={list}
+          onUpdateList={onUpdateList}
+          onDeleteList={onDeleteList}
+          onAddItem={onAddItem}
+          onToggleComplete={onToggleComplete}
+          onUpdateItem={onUpdateItem}
+          onDeleteItem={onDeleteItem}
+          onAddSubItem={onAddSubItem}
+          onMoveItem={onMoveItem}
+          allLists={allLists}
+        />
+      ))}
     </div>
   );
 };

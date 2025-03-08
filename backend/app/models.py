@@ -20,6 +20,13 @@ class TodoList(db.Model):
     def __repr__(self):
         return f'<TodoList {self.name}>'
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'items': [item.to_dict() for item in self.items]
+        }
+
 class TodoItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)

@@ -3,28 +3,38 @@
   display: inline-block;
 }
 
-.tooltip-container .tooltip-text {
+.tooltip {
+  position: fixed !important;
   visibility: hidden;
-  background-color: #333;
-  color: #fff;
+  background-color: rgba(51, 51, 51, 0.9);
+  color: white;
   text-align: center;
-  border-radius: 4px;
-  padding: 5px 8px;
-  position: absolute;
-  z-index: 9999;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: normal;
+  z-index: 10000 !important;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  max-width: 200px;
+  word-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-container:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Tooltip positions */
+.tooltip-top {
   bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-size: 12px;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.2));
 }
 
-.tooltip-container .tooltip-text::after {
+.tooltip-top::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -32,12 +42,104 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #333 transparent transparent transparent;
+  border-color: rgba(51, 51, 51, 0.9) transparent transparent transparent;
 }
 
-.tooltip-container:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
+.tooltip-bottom {
+  top: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tooltip-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(51, 51, 51, 0.9) transparent;
+}
+
+.tooltip-left {
+  right: 125%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tooltip-left::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent transparent rgba(51, 51, 51, 0.9);
+}
+
+.tooltip-right {
+  left: 125%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tooltip-right::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent rgba(51, 51, 51, 0.9) transparent transparent;
+}
+
+/* Ensure tooltips stay within viewport */
+@media (max-width: 768px) {
+  .tooltip {
+    max-width: 150px;
+  }
+  
+  /* For small screens, prefer top/bottom positioning */
+  .tooltip-left, .tooltip-right {
+    left: 50%;
+    right: auto;
+    top: 125%;
+    transform: translateX(-50%);
+  }
+  
+  .tooltip-left::after, .tooltip-right::after {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 100%;
+    margin-left: -5px;
+    margin-top: 0;
+    border-color: transparent transparent rgba(51, 51, 51, 0.9) transparent;
+  }
+}
+
+/* Adjust tooltip position for action buttons */
+.todo-actions .tooltip-container .tooltip,
+.list-actions .tooltip-container .tooltip {
+  bottom: auto;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.todo-actions .tooltip-container .tooltip::after,
+.list-actions .tooltip-container .tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(51, 51, 51, 0.9) transparent transparent transparent;
 }
 
 /* Special positioning for action buttons */
@@ -114,51 +216,6 @@
 .items-scroll-container {
   overflow-y: auto !important;
   overflow-x: visible !important;
-}
-
-/* Position-specific adjustments */
-.tooltip-top::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #2d3748 transparent transparent transparent;
-}
-
-.tooltip-bottom::after {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent #2d3748 transparent;
-}
-
-.tooltip-left::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent transparent #2d3748;
-}
-
-.tooltip-right::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent #2d3748 transparent transparent;
 }
 
 /* Make sure tooltips don't overlap with other elements */

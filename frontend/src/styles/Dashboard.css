@@ -1,181 +1,1333 @@
+/* Dashboard styling with consistent design language */
 .dashboard-container {
-  min-height: 100vh;
-  background-color: #f7f9fc;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+}
+
+/* App header styling */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-bottom: 0;
+}
+
+.app-title::after {
+  display: none;
+}
+
+.app-title h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.app-title-icon {
+  margin-right: 10px;
+  font-size: 28px;
+}
+
+.app-title-highlight {
+  color: #f67a90;
+}
+
+/* Dashboard section styling */
+.dashboard-content {
+  padding: 0;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  margin-bottom: 30px;
+  position: relative;
 }
 
-.dashboard-header h1 {
-  margin: 0;
+.dashboard-section-title {
   font-size: 24px;
+  font-weight: 700;
   color: #333;
-  font-weight: 600;
+  margin: 0;
+  position: relative;
+  padding-bottom: 0;
 }
 
-.header-actions {
+.dashboard-section-title::after {
+  display: none;
+}
+
+/* Create list button styling */
+.create-list-button {
+  padding: 10px 20px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.3);
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 8px;
 }
 
-.username {
-  font-weight: 500;
+.create-list-button:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  box-shadow: 0 6px 16px rgba(255, 182, 193, 0.4);
+  transform: translateY(-2px);
+}
+
+.create-list-button-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* User controls styling */
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.username-display {
+  font-size: 15px;
   color: #555;
+  background-color: rgba(255, 182, 193, 0.15);
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 182, 193, 0.4);
+  box-shadow: 0 3px 10px rgba(255, 182, 193, 0.15);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
 }
 
-.header-button {
+.username-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #f78ca0, #ffb6c1);
+  border-radius: 10px 0 0 10px;
+}
+
+.username-highlight {
+  font-weight: 700;
+  color: #f67a90;
+}
+
+.username-display:hover {
+  background-color: rgba(255, 182, 193, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.2);
+  transform: translateY(-1px);
+}
+
+.logout-button {
   padding: 8px 16px;
-  background-color: #f1f5f9;
-  color: #4a5568;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+}
+
+.logout-button:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+  transform: translateY(-1px);
+}
+
+/* List container styling */
+.lists-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+}
+
+.list-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(255, 182, 193, 0.15);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.list-card:hover {
+  box-shadow: 0 12px 30px rgba(255, 182, 193, 0.25);
+  transform: translateY(-3px);
+}
+
+.list-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+}
+
+.list-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 182, 193, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-title-input {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid #ffb6c1;
+  border-radius: 6px;
+  padding: 5px 10px;
+  width: 100%;
+  outline: none;
+}
+
+.list-title-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.3);
+}
+
+.list-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.list-action-button {
+  background: none;
+  border: none;
+  color: #ffb6c1;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.list-action-button:hover {
+  background-color: rgba(255, 182, 193, 0.1);
+  color: #f67a90;
+  transform: translateY(-1px);
+}
+
+/* Edit icon */
+.list-action-button:nth-child(1) {
+  color: #ffb6c1;
+}
+
+/* Delete icon */
+.list-action-button:nth-child(2) {
+  color: #f78ca0;
+}
+
+/* Add sub-item icon */
+.list-action-button:nth-child(3) {
+  color: #ffa6b5;
+}
+
+/* Move icon */
+.list-action-button:nth-child(4) {
+  color: #ffb6c1;
+}
+
+/* Todo items styling */
+.todo-items {
+  padding: 15px 20px;
+  flex-grow: 1;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.todo-items::-webkit-scrollbar {
+  width: 8px;
+}
+
+.todo-items::-webkit-scrollbar-track {
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.todo-items::-webkit-scrollbar-thumb {
+  background: rgba(255, 182, 193, 0.5);
+  border-radius: 4px;
+}
+
+.todo-items::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 182, 193, 0.7);
+}
+
+.todo-item {
+  background-color: white;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  position: relative;
+  border-left: 3px solid #ffb6c1 !important;
+}
+
+.todo-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.todo-item.completed {
+  opacity: 0.7;
+  border-left-color: #f78ca0 !important;
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.todo-item-container {
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.todo-item-content {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  overflow: hidden;
+  max-width: calc(100% - 100px); /* Leave space for action buttons */
+}
+
+.todo-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffb6c1;
+  border-radius: 4px;
+  margin-right: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.todo-checkbox:checked {
+  background-color: #f78ca0;
+  border-color: #f78ca0;
+}
+
+.todo-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.todo-checkbox:hover {
+  border-color: #f67a90;
+}
+
+.collapse-button {
+  background: none;
+  border: none;
+  color: #ffb6c1;
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.collapse-button:hover {
+  color: #f67a90;
+}
+
+.todo-text {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+}
+
+.todo-input {
+  font-size: 16px;
+  padding: 8px 12px;
+  border: 1px solid #ffb6c1;
+  border-radius: 6px;
+  width: 100%;
+  outline: none;
+}
+
+.todo-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.3);
+}
+
+.todo-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.todo-action-button {
+  background: none;
+  border: none;
+  color: #ffb6c1;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.todo-action-button:hover {
+  background-color: rgba(255, 182, 193, 0.1);
+  color: #f67a90;
+  transform: translateY(-1px);
+}
+
+/* Edit icon */
+.todo-action-button:nth-child(1) {
+  color: #ffb6c1;
+}
+
+/* Delete icon */
+.todo-action-button:nth-child(2) {
+  color: #f78ca0;
+}
+
+/* Add sub-item icon */
+.todo-action-button:nth-child(3) {
+  color: #ffa6b5;
+}
+
+/* Move icon */
+.todo-action-button:nth-child(4) {
+  color: #ffb6c1;
+}
+
+/* New Item Form styling */
+.new-item-form {
+  padding: 15px;
+  background-color: rgba(255, 182, 193, 0.05);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.new-item-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ffb6c1;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.new-item-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.2);
+}
+
+.new-item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.new-item-cancel {
+  padding: 8px 15px;
+  background-color: #f0f0f0;
+  color: #666;
   border: none;
   border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 500;
   transition: all 0.2s;
 }
 
-.header-button:hover {
-  background-color: #e2e8f0;
-  color: #2d3748;
+.new-item-cancel:hover {
+  background-color: #e0e0e0;
 }
 
-.dashboard-content {
-  padding: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.dashboard {
-  margin-bottom: 40px;
-}
-
-.dashboard-title {
-  margin-bottom: 25px;
-  color: #2d3748;
-  font-size: 28px;
+.new-item-submit {
+  padding: 8px 15px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(255, 182, 193, 0.3);
 }
 
+.new-item-submit:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 7px rgba(255, 182, 193, 0.4);
+}
+
+/* Add item button styling */
+.add-item-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, rgba(247, 140, 160, 0.1), rgba(255, 182, 193, 0.1));
+  color: #f67a90;
+  border: 1px dashed rgba(255, 182, 193, 0.5);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.add-item-button:hover {
+  background: linear-gradient(90deg, rgba(247, 140, 160, 0.15), rgba(255, 182, 193, 0.15));
+  border-color: rgba(255, 182, 193, 0.7);
+}
+
+.add-item-button::before {
+  content: '+';
+  font-size: 18px;
+  font-weight: bold;
+  color: #f78ca0;
+}
+
+/* Empty items message */
+.empty-items-message {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  background-color: rgba(255, 182, 193, 0.03);
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+/* Sub-item form styling */
+.sub-item-form {
+  margin-left: 30px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  border-left: 2px dashed rgba(255, 182, 193, 0.3);
+  padding-left: 15px;
+}
+
+/* Move options menu styling */
+.move-item-container {
+  position: relative;
+}
+
+.move-options-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  width: 180px;
+  z-index: 10;
+  overflow: hidden;
+  border: 1px solid rgba(255, 182, 193, 0.2);
+}
+
+.move-options-header {
+  padding: 10px 15px;
+  background: linear-gradient(90deg, rgba(247, 140, 160, 0.1), rgba(255, 182, 193, 0.1));
+  color: #f67a90;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 182, 193, 0.1);
+}
+
+.move-option {
+  display: block;
+  width: 100%;
+  padding: 8px 15px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 182, 193, 0.1);
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.move-option:last-child {
+  border-bottom: none;
+}
+
+.move-option:hover {
+  background-color: rgba(255, 182, 193, 0.1);
+  color: #f67a90;
+}
+
+/* Cancel button styling for consistency */
+.cancel-button {
+  padding: 8px 15px;
+  background-color: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Add new list button */
+.add-list-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.add-list-button:hover {
+  transform: translateY(-3px) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(255, 182, 193, 0.5);
+}
+
+/* Modal styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-header {
+  padding: 20px 25px;
+  border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-form {
+  padding: 25px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 25px;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.modal-input:focus {
+  border-color: #ffb6c1;
+  box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
+  outline: none;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.modal-cancel {
+  padding: 12px 20px;
+  background: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 100px;
+  text-align: center;
+}
+
+.modal-cancel:hover {
+  background: #e0e0e0;
+}
+
+.modal-submit {
+  padding: 12px 20px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+  min-width: 100px;
+  text-align: center;
+}
+
+.modal-submit:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+  transform: translateY(-1px);
+}
+
+@keyframes modalSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  color: #ffb6c1;
+  margin-bottom: 15px;
+}
+
+.empty-state-text {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.empty-state-button {
+  padding: 10px 20px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+  display: inline-block;
+}
+
+.empty-state-button:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .user-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .lists-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .add-list-button {
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.list-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Nested items styling */
+.nested-items {
+  margin-left: 30px;
+  border-left: 2px dashed rgba(255, 182, 193, 0.5) !important;
+  padding-left: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* Fix for the data-depth attribute selector */
+.todo-item[data-depth="0"]::before {
+  content: none;
+}
+
+/* Add the drag handle for top-level items */
+.todo-item-content::before {
+  content: '≡';
+  display: inline-block;
+  margin-right: 8px;
+  color: #ffb6c1;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.todo-item[data-depth="0"] .todo-item-content::before {
+  opacity: 1;
+}
+
+.todo-item:hover .todo-item-content::before {
+  color: #f67a90;
+}
+
+/* Ensure proper spacing for checkboxes and collapse buttons */
+.todo-checkbox {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.collapse-button {
+  background: none;
+  border: none;
+  color: #ffb6c1;
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.collapse-button:hover {
+  color: #f67a90;
+}
+
+/* Ensure text doesn't overflow */
+.todo-text {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+}
+
+/* Move options menu styling */
+.move-item-container {
+  position: relative;
+}
+
+.move-options-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 10;
+  min-width: 150px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.move-options-header {
+  padding: 5px 12px;
+  font-size: 12px;
+  color: #999;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 5px;
+}
+
+.move-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.move-option:hover {
+  background-color: #f9f9f9;
+  color: #f67a90;
+}
+
+/* Completed item styling */
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: #aaa;
+}
+
+.todo-item.completed {
+  background-color: #f9f9f9;
+}
+
+/* New list form */
 .new-list-form {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-  max-width: 600px;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 15px rgba(255, 182, 193, 0.15);
+  animation: fadeIn 0.3s ease-out;
 }
 
 .new-list-form input {
-  flex: 1;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
   font-size: 16px;
+  margin-bottom: 15px;
   transition: all 0.3s;
 }
 
 .new-list-form input:focus {
-  border-color: #4a90e2;
+  border-color: #ffb6c1;
+  box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
-.new-list-form button {
+.create-list-submit {
   padding: 12px 20px;
-  background: #4a90e2;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3);
+  align-self: flex-end;
+}
+
+.create-list-submit:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  box-shadow: 0 6px 15px rgba(255, 182, 193, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Error message */
+.error-message {
+  background-color: #fff8f8;
+  border: 1px solid #ffcccc;
+  color: #e05a5a;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.error-message button {
+  background: none;
+  border: none;
+  color: #e05a5a;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+/* Drag and drop styling */
+.todo-item.dragging {
+  opacity: 0.5;
+}
+
+.list-card.drop-target {
+  box-shadow: 0 0 0 2px #ffb6c1, 0 8px 20px rgba(255, 182, 193, 0.2);
+}
+
+.todo-item {
+  transition: all 0.2s ease;
+}
+
+.todo-item[data-depth="0"] {
+  cursor: grab;
+}
+
+.todo-item[data-depth="0"]:active {
+  cursor: grabbing;
+}
+
+/* Add a visual indicator for draggable items */
+.todo-item[data-depth="0"]::before {
+  content: none;
+}
+
+.todo-item[data-depth="0"]:hover::before {
+  color: #f67a90;
+}
+
+/* Edit input container */
+.edit-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 70%; /* Limit width to leave space for action buttons */
+  max-width: 250px;
+}
+
+.todo-edit-input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ffb6c1;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.todo-edit-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.2);
+}
+
+/* Save button styling */
+.save-edit-button {
+  padding: 5px 10px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.2s;
+  height: 32px;
+  min-width: 60px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.new-list-form button:hover {
-  background: #3a7bc8;
+.save-edit-button:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  transform: translateY(-1px);
 }
 
-.lists-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 25px;
+/* List edit container */
+.list-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 70%; /* Limit width to leave space for action buttons */
+  max-width: 300px;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  color: #718096;
+.list-title-input {
+  flex-grow: 1;
   font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid #ffb6c1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  outline: none;
+  height: 36px;
+  box-sizing: border-box;
 }
 
-.loading-spinner {
-  display: block;
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(74, 144, 226, 0.2);
-  border-radius: 50%;
-  border-top-color: #4a90e2;
-  margin: 40px auto;
-  animation: spin 1s ease-in-out infinite;
+/* Ensure action buttons are properly aligned */
+.todo-actions, .list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto; /* Push to the right */
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* Adjust spacing for nested items */
+.nested-items .todo-item-container {
+  padding: 8px 12px;
 }
 
-/* Responsive styles for different screen sizes */
-@media screen and (min-width: 1200px) {
-  .dashboard-header {
-    padding: 1.2rem 2.5rem;
-  }
-  
-  .dashboard-content {
-    max-width: 1400px;
-  }
-  
-  .new-list-form input {
-    padding: 12px 18px;
-    font-size: 16px;
-  }
-  
-  .new-list-form button {
-    padding: 12px 22px;
-    font-size: 16px;
-  }
+.nested-items .edit-input-container {
+  width: 60%;
+  max-width: 200px;
 }
 
-@media screen and (min-width: 1800px) {
-  .dashboard-header {
-    padding: 1.5rem 3rem;
-  }
-  
-  .dashboard-content {
-    max-width: 1800px;
-  }
-  
-  .dashboard-title {
-    font-size: 32px;
-  }
-  
-  .new-list-form input {
-    padding: 15px 20px;
-    font-size: 18px;
-  }
-  
-  .new-list-form button {
-    padding: 15px 25px;
-    font-size: 18px;
-  }
+.nested-items .save-edit-button {
+  padding: 4px 8px;
+  height: 28px;
+  min-width: 50px;
+  font-size: 12px;
+}
+
+/* Ensure proper spacing in todo item container */
+.todo-item-container {
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.todo-item-content {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  overflow: hidden;
+  max-width: calc(100% - 100px); /* Leave space for action buttons */
+}
+
+/* Special styling for list edit mode */
+.list-header.editing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-header.editing .list-edit-container {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.list-header.editing .list-actions {
+  display: flex;
+  align-items: center;
+}
+
+.list-header.editing .list-action-button {
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.list-header.editing .list-action-button:hover {
+  background-color: #f0f0f0;
+}
+
+/* Adjust save button height to match cancel button */
+.list-header.editing .save-edit-button {
+  height: 36px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Form styling for add item and cancel buttons */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.form-cancel-button {
+  padding: 8px 15px;
+  background-color: #f8f8f8;
+  color: #666;
+  border: 1px solid rgba(255, 182, 193, 0.3);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-cancel-button:hover {
+  background-color: #f0f0f0;
+  color: #f67a90;
+}
+
+.form-submit-button {
+  padding: 8px 15px;
+  background: linear-gradient(90deg, #f78ca0, #ffb6c1);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(255, 182, 193, 0.3);
+}
+
+.form-submit-button:hover {
+  background: linear-gradient(90deg, #f67a90, #ffa6b5);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 7px rgba(255, 182, 193, 0.4);
+}
+
+.form-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Input field styling */
+.form-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid rgba(255, 182, 193, 0.5);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  border-color: #ffb6c1;
+  box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.2);
+}
+
+/* Form container */
+.form-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(255, 182, 193, 0.1);
+  margin-bottom: 15px;
+}
+
+/* Depth-based styling for nested items */
+.todo-item[data-depth="0"] {
+  border-left: 3px solid #f78ca0 !important;
+}
+
+.todo-item[data-depth="1"] {
+  border-left: 3px solid #ffa6b5 !important;
+}
+
+.todo-item[data-depth="2"] {
+  border-left: 3px solid #ffb6c1 !important;
+}
+
+.todo-item[data-depth="3"] {
+  border-left: 3px solid #ffc6d0 !important;
+}
+
+/* Ensure proper spacing for the drag handle */
+.todo-item-content::before {
+  content: '≡';
+  display: inline-block;
+  margin-right: 8px;
+  color: #ffb6c1;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.todo-item[data-depth="0"] .todo-item-content::before {
+  opacity: 1;
+}
+
+.todo-item:hover .todo-item-content::before {
+  color: #f67a90;
 } 

@@ -1,17 +1,53 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useDrag } from 'react-dnd';
 import NewItemForm from './NewItemForm';
-import DraggableItem from './DraggableItem';
 import Tooltip from '../common/Tooltip';
 
-const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
+const TodoItem = ({ 
+  item, 
+  listId, 
+  onToggleComplete, 
+  onUpdateItem, 
+  onDeleteItem,
+  onAddSubItem,
+  onMoveItem,
+  allLists
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(item.isCollapsed || false);
   const [isEditing, setIsEditing] = useState(false);
-  const [description, setDescription] = useState(item.description);
+  const [editedDescription, setEditedDescription] = useState(item.description);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
-  const [availableLists, setAvailableLists] = useState([]);
   const [showMoveOptions, setShowMoveOptions] = useState(false);
   const moveMenuRef = useRef(null);
 
+  // Set up drag functionality
+  const [{ isDragging }, drag] = useDrag({
+    type: 'TODO_ITEM',
+    item: { 
+      id: item.id, 
+      sourceListId: listId,
+      depth: item.depth || 0
+    },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+    canDrag: () => item.depth === 0, // Only allow dragging top-level items
+  });
+
+  // Load collapse state from localStorage
+  useEffect(() => {
+    try {
+      const collapseStateKey = `collapse_state_${item.id}`;
+      const savedState = localStorage.getItem(collapseStateKey);
+      if (savedState !== null) {
+        setIsCollapsed(JSON.parse(savedState));
+      }
+    } catch (error) {
+      console.error('Error loading collapse state:', error);
+    }
+  }, [item.id]);
+
+  // Save collapse state to localStorage when it changes
   useEffect(() => {
     if (item.isCollapsed !== isCollapsed) {
       const updateCollapseState = async () => {
@@ -26,18 +62,6 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
       updateCollapseState();
     }
   }, [isCollapsed, item.id, item.isCollapsed]);
-  
-  useEffect(() => {
-    try {
-      const collapseStateKey = `collapse_state_${item.id}`;
-      const savedState = localStorage.getItem(collapseStateKey);
-      if (savedState !== null) {
-        setIsCollapsed(JSON.parse(savedState));
-      }
-    } catch (error) {
-      console.error('Error loading collapse state:', error);
-    }
-  }, [item.id]);
 
   // Close the move menu when clicking outside
   useEffect(() => {
@@ -56,244 +80,187 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
     };
   }, [showMoveOptions]);
 
-  const handleComplete = async () => {
-    try {
-      const response = await fetch(`/item/${item.id}/complete`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        onUpdate();
-      }
-    } catch (error) {
-      console.error('Error completing item:', error);
+  const handleEditSubmit = () => {
+    if (editedDescription.trim() && editedDescription !== item.description) {
+      onUpdateItem(listId, item.id, editedDescription);
     }
+    setIsEditing(false);
   };
 
-  const handleUpdateDescription = async () => {
-    try {
-      const response = await fetch(`/item/${item.id}/edit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ description }),
-      });
-
-      if (response.ok) {
-        setIsEditing(false);
-        onUpdate();
-      }
-    } catch (error) {
-      console.error('Error updating item:', error);
-    }
+  const handleAddSubItem = (description) => {
+    onAddSubItem(listId, item.id, description);
+    setIsAddingSubItem(false);
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this item and all its sub-items?')) {
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/item/${item.id}/delete`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        onUpdate();
-      } else {
-        console.error('Error deleting item:', await response.json());
-      }
-    } catch (error) {
-      console.error('Error deleting item:', error);
-    }
-  };
-
-  const handleShowMoveOptions = async () => {
-    try {
-      const response = await fetch('/api/lists', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableLists(data.lists.filter(l => l.id !== listId));
-        setShowMoveOptions(true);
-      }
-    } catch (error) {
-      console.error('Error fetching lists:', error);
-    }
-  };
-
-  const handleMoveItem = async (targetListId) => {
-    try {
-      const response = await fetch(`/item/${item.id}/move`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ target_list_id: targetListId }),
-      });
-
-      if (response.ok) {
-        setShowMoveOptions(false);
-        onUpdate();
-      } else {
-        console.error('Error moving item:', await response.json());
-      }
-    } catch (error) {
-      console.error('Error moving item:', error);
-    }
+  const handleMoveItem = (targetListId) => {
+    onMoveItem(item, targetListId);
+    setShowMoveOptions(false);
   };
 
   const hasChildren = item.children && item.children.length > 0;
-  const canAddSubItems = depth < 2; // Limit hierarchy to 3 levels
+  const canAddSubItems = item.depth < 2; // Limit hierarchy to 3 levels (0, 1, 2)
+  const isTopLevel = item.depth === 0; // Only top-level items can be moved
 
   return (
-    <div className={`todo-item depth-${depth} ${item.complete ? 'completed' : ''}`}>
-      <div className="item-content">
-        {hasChildren && (
-          <Tooltip text={isCollapsed ? "Expand sub-items" : "Collapse sub-items"}>
-            <button 
-              className="collapse-button"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              aria-label={isCollapsed ? "Expand" : "Collapse"}
-            >
-              {isCollapsed ? '▶' : '▼'}
-            </button>
-          </Tooltip>
-        )}
-        
+    <div 
+      ref={drag}
+      className={`todo-item ${item.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''}`}
+      style={{ 
+        opacity: isDragging ? 0.5 : 1,
+        cursor: item.depth === 0 ? 'grab' : 'default'
+      }}
+      data-depth={item.depth || 0}
+    >
+      <div className="todo-item-container">
         {isEditing ? (
-          <div className="edit-form">
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <button onClick={handleUpdateDescription}>Save</button>
-            <button onClick={() => setIsEditing(false)}>Cancel</button>
-          </div>
-        ) : (
-          <div className="item-details">
-            <span 
-              className={item.complete ? 'completed-task' : ''}
-              onClick={() => setIsEditing(true)}
-            >
-              {item.description}
-            </span>
-            {depth === 0 && (
-              <Tooltip text="Drag to move to another list">
-                <span className="drag-handle">
-                  ⋮⋮
-                </span>
-              </Tooltip>
-            )}
-          </div>
-        )}
-
-        <div className="item-actions">
-          <Tooltip text="Complete this item" position="bottom">
-            <button 
-              className="action-button complete-button" 
-              onClick={handleComplete}
-            >
-              {item.complete ? '✓' : '○'}
-            </button>
-          </Tooltip>
-          
-          <Tooltip text="Edit item">
-            <button 
-              className="action-button edit-button" 
-              onClick={() => setIsEditing(true)}
-            >
-              ✎
-            </button>
-          </Tooltip>
-          
-          <Tooltip text="Delete item">
-            <button 
-              className="action-button delete-button" 
-              onClick={handleDelete}
-            >
-              🗑
-            </button>
-          </Tooltip>
-          
-          {canAddSubItems && !isAddingSubItem && (
-            <Tooltip text="Add sub-item">
+          <>
+            <div className="edit-input-container">
+              <input
+                type="checkbox"
+                className="todo-checkbox"
+                checked={item.complete || false}
+                onChange={() => onToggleComplete(listId, item.id)}
+              />
+              <input
+                type="text"
+                className="todo-edit-input"
+                value={editedDescription}
+                onChange={(e) => setEditedDescription(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleEditSubmit()}
+                autoFocus
+              />
               <button 
-                className="action-button add-sub-button" 
-                onClick={() => setIsAddingSubItem(true)}
+                className="save-edit-button"
+                onClick={handleEditSubmit}
               >
-                +
+                Save
               </button>
-            </Tooltip>
-          )}
-          
-          {depth === 0 && (
-            <div className="move-dropdown" ref={moveMenuRef}>
-              <Tooltip text="Move to another list" position="left">
+            </div>
+            <div className="todo-actions">
+              <Tooltip text="Cancel">
                 <button 
-                  className="action-button move-button" 
-                  onClick={handleShowMoveOptions}
+                  className="todo-action-button"
+                  onClick={() => setIsEditing(false)}
                 >
-                  ↗
+                  ❌
                 </button>
               </Tooltip>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="todo-item-content">
+              <input
+                type="checkbox"
+                className="todo-checkbox"
+                checked={item.complete || false}
+                onChange={() => onToggleComplete(listId, item.id)}
+              />
               
-              {showMoveOptions && (
-                <div className="move-menu">
-                  <div className="move-menu-header">Move to list:</div>
-                  {availableLists.length > 0 ? (
-                    <ul className="move-menu-list">
-                      {availableLists.map(list => (
-                        <li 
-                          key={list.id} 
-                          className="move-menu-item"
-                          onClick={() => handleMoveItem(list.id)}
-                        >
-                          {list.name}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="move-menu-empty">No other lists available</div>
+              {hasChildren && (
+                <Tooltip text={isCollapsed ? "Expand" : "Collapse"}>
+                  <button 
+                    className="collapse-button"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                  >
+                    {isCollapsed ? '▶' : '▼'}
+                  </button>
+                </Tooltip>
+              )}
+              
+              <span className="todo-text">{item.description}</span>
+            </div>
+            
+            <div className="todo-actions">
+              {isTopLevel && allLists && allLists.length > 1 && (
+                <div className="move-item-container" ref={moveMenuRef}>
+                  <Tooltip text="Move to another list">
+                    <button 
+                      className="todo-action-button"
+                      onClick={() => setShowMoveOptions(!showMoveOptions)}
+                    >
+                      ↗️
+                    </button>
+                  </Tooltip>
+                  
+                  {showMoveOptions && (
+                    <div className="move-options-menu">
+                      <div className="move-options-header">Move to:</div>
+                      {allLists
+                        .filter(list => list.id !== listId)
+                        .map(list => (
+                          <button
+                            key={list.id}
+                            className="move-option"
+                            onClick={() => handleMoveItem(list.id)}
+                          >
+                            {list.name}
+                          </button>
+                        ))
+                      }
+                    </div>
                   )}
                 </div>
               )}
+              
+              {canAddSubItems && (
+                <Tooltip text="Add sub-item">
+                  <button 
+                    className="todo-action-button"
+                    onClick={() => setIsAddingSubItem(!isAddingSubItem)}
+                  >
+                    ➕
+                  </button>
+                </Tooltip>
+              )}
+              
+              <Tooltip text="Edit item">
+                <button 
+                  className="todo-action-button"
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditedDescription(item.description);
+                  }}
+                >
+                  ✏️
+                </button>
+              </Tooltip>
+              
+              <Tooltip text="Delete item">
+                <button 
+                  className="todo-action-button"
+                  onClick={() => onDeleteItem(listId, item.id)}
+                >
+                  🗑️
+                </button>
+              </Tooltip>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
-
+      
       {isAddingSubItem && (
         <div className="sub-item-form">
           <NewItemForm 
-            listId={listId}
-            parentId={item.id}
-            onItemAdded={() => {
-              setIsAddingSubItem(false);
-              onUpdate();
-            }}
+            onSubmit={handleAddSubItem}
             onCancel={() => setIsAddingSubItem(false)}
           />
         </div>
       )}
-
-      {!isCollapsed && hasChildren && (
-        <div className="sub-items">
-          {item.children.map((child) => (
-            <DraggableItem
+      
+      {hasChildren && !isCollapsed && (
+        <div className="nested-items">
+          {item.children.map(child => (
+            <TodoItem
               key={child.id}
-              item={child}
-              onUpdate={onUpdate}
+              item={{...child, depth: (item.depth || 0) + 1}}
               listId={listId}
-              depth={depth + 1}
+              onToggleComplete={onToggleComplete}
+              onUpdateItem={onUpdateItem}
+              onDeleteItem={onDeleteItem}
+              onAddSubItem={onAddSubItem}
+              onMoveItem={onMoveItem}
+              allLists={allLists}
             />
           ))}
         </div>

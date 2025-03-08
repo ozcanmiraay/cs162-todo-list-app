@@ -1,52 +1,42 @@
 import React, { useState } from 'react';
 
-const NewItemForm = ({ listId, onItemAdded, parentId = null, onCancel }) => {
+const NewItemForm = ({ onSubmit, onCancel }) => {
   const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-    
-    try {
-      const response = await fetch(`/list/${listId}/item/new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ 
-          description,
-          parent_id: parentId
-        }),
-      });
-
-      if (response.ok) {
-        setDescription('');
-        onItemAdded();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to add item');
-        console.error('Error adding item:', errorData);
-      }
-    } catch (error) {
-      setError('Network error. Please try again.');
-      console.error('Error adding item:', error);
+    if (description.trim()) {
+      onSubmit(description);
+      setDescription('');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="new-item-form">
-      {error && <div className="error-message">{error}</div>}
+    <form className="form-container" onSubmit={handleSubmit}>
       <input
         type="text"
+        className="form-input"
+        placeholder="Enter item description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Enter item description"
-        required
+        autoFocus
       />
-      <button type="submit">Add</button>
-      {onCancel && <button type="button" onClick={onCancel}>Cancel</button>}
+      <div className="form-actions">
+        <button 
+          type="button" 
+          className="form-cancel-button"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          className="form-submit-button"
+          disabled={!description.trim()}
+        >
+          Add
+        </button>
+      </div>
     </form>
   );
 };
