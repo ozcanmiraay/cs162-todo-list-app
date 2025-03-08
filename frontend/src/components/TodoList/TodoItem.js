@@ -6,6 +6,9 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(item.description);
   const [isAddingSubItem, setIsAddingSubItem] = useState(false);
+  const [availableLists, setAvailableLists] = useState([]);
+  const [showMoveOptions, setShowMoveOptions] = useState(false);
+  const [targetListId, setTargetListId] = useState('');
 
   const handleComplete = async () => {
     try {
@@ -42,20 +45,83 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this item and all its sub-items?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/item/${item.id}/delete`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        onUpdate();
+      } else {
+        console.error('Error deleting item:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
+
+  const handleShowMoveOptions = async () => {
+    try {
+      const response = await fetch('/api/lists', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableLists(data.lists.filter(l => l.id !== listId));
+        setShowMoveOptions(true);
+      }
+    } catch (error) {
+      console.error('Error fetching lists:', error);
+    }
+  };
+
+  const handleMoveItem = async () => {
+    if (!targetListId) return;
+    
+    try {
+      const response = await fetch(`/item/${item.id}/move`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ target_list_id: targetListId }),
+      });
+
+      if (response.ok) {
+        setShowMoveOptions(false);
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Error moving item:', error);
+    }
+  };
+
   const hasChildren = item.children && item.children.length > 0;
   const canAddSubItems = depth < 2; // Limit hierarchy to 3 levels
 
   return (
-    <div className="todo-item" style={{ marginLeft: `${depth * 20}px` }}>
+    <div className={`todo-item depth-${depth} ${item.complete ? 'completed' : ''}`}>
       <div className="item-content">
         {hasChildren && (
-          <button onClick={() => setIsCollapsed(!isCollapsed)}>
-            {isCollapsed ? '►' : '▼'}
+          <button 
+            className="collapse-button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? "Expand" : "Collapse"}
+          >
+            {isCollapsed ? '▶' : '▼'}
           </button>
         )}
         
         {isEditing ? (
-          <div>
+          <div className="edit-form">
             <input
               type="text"
               value={description}
@@ -65,11 +131,13 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
             <button onClick={() => setIsEditing(false)}>Cancel</button>
           </div>
         ) : (
-          <div>
-            <span className={item.complete ? 'completed' : ''}>
+          <div className="item-details">
+            <span 
+              className={item.complete ? 'completed-task' : ''}
+              onClick={() => setIsEditing(true)}
+            >
               {item.description}
             </span>
-            <button onClick={() => setIsEditing(true)}>Edit</button>
           </div>
         )}
 
@@ -77,25 +145,51 @@ const TodoItem = ({ item, onUpdate, listId, depth = 0 }) => {
           <button onClick={handleComplete}>
             {item.complete ? 'Undo' : 'Complete'}
           </button>
-          {canAddSubItems && (
-            isAddingSubItem ? (
-              <NewItemForm 
-                listId={listId}
-                parentId={item.id}
-                onItemAdded={() => {
-                  setIsAddingSubItem(false);
-                  onUpdate();
-                }}
-                onCancel={() => setIsAddingSubItem(false)}
-              />
-            ) : (
-              <button onClick={() => setIsAddingSubItem(true)}>
-                Add Sub-item
-              </button>
-            )
+          <button onClick={() => setIsEditing(true)}>Edit</button>
+          <button onClick={handleDelete} className="delete-button">
+            Delete
+          </button>
+          {canAddSubItems && !isAddingSubItem && (
+            <button onClick={() => setIsAddingSubItem(true)}>
+              Add Sub-item
+            </button>
+          )}
+          
+          {depth === 0 && (
+            <button onClick={handleShowMoveOptions}>Move</button>
           )}
         </div>
+
+        {depth === 0 && showMoveOptions && (
+          <div className="move-options">
+            <select 
+              value={targetListId} 
+              onChange={(e) => setTargetListId(e.target.value)}
+            >
+              <option value="">Select a list</option>
+              {availableLists.map(list => (
+                <option key={list.id} value={list.id}>{list.name}</option>
+              ))}
+            </select>
+            <button onClick={handleMoveItem}>Move</button>
+            <button onClick={() => setShowMoveOptions(false)}>Cancel</button>
+          </div>
+        )}
       </div>
+
+      {isAddingSubItem && (
+        <div className="sub-item-form">
+          <NewItemForm 
+            listId={listId}
+            parentId={item.id}
+            onItemAdded={() => {
+              setIsAddingSubItem(false);
+              onUpdate();
+            }}
+            onCancel={() => setIsAddingSubItem(false)}
+          />
+        </div>
+      )}
 
       {!isCollapsed && hasChildren && (
         <div className="sub-items">

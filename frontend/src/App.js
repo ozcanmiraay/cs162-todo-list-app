@@ -3,6 +3,7 @@ import Login from './components/Auth/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import './styles/Auth.css';
 import './styles/Dashboard.css';
+import './styles/TodoList.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

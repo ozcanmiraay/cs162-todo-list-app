@@ -206,60 +206,164 @@ def new_list():
     db.session.commit()
     return jsonify({'message': 'List created successfully', 'id': new_list.id}), 201
 
-@app.route('/list/<int:list_id>/edit', methods=['GET', 'POST'])
-@login_required
+@app.route('/list/<int:list_id>/edit', methods=['POST', 'OPTIONS'])
 def edit_list(list_id):
-    todo_list = TodoList.query.filter_by(id=list_id, user_id=current_user.id).first_or_404()
-    if request.method == 'POST':
-        new_name = request.form.get('name')
-        if new_name:
-            todo_list.name = new_name
-            db.session.commit()
-            flash('List updated successfully!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('List name cannot be empty', 'warning')
-    return render_template('edit_list.html', list=todo_list)
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+        
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
+    todo_list = TodoList.query.get(list_id)
+    if not todo_list:
+        return jsonify({'error': 'List not found'}), 404
+        
+    if todo_list.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    data = request.get_json()
+    if not data or 'name' not in data:
+        return jsonify({'error': 'List name is required'}), 400
+        
+    todo_list.name = data['name']
+    db.session.commit()
+    
+    return jsonify({
+        'id': todo_list.id,
+        'name': todo_list.name
+    }), 200
 
-@app.route('/list/<int:list_id>/delete', methods=['POST'])
-@login_required
+@app.route('/list/<int:list_id>/delete', methods=['POST', 'OPTIONS'])
 def delete_list(list_id):
-    todo_list = TodoList.query.filter_by(id=list_id, user_id=current_user.id).first_or_404()
-    db.session.delete(todo_list)
-    db.session.commit()
-    flash('List deleted successfully!', 'success')
-    return redirect(url_for('dashboard'))
-
-@app.route('/list/<int:list_id>/item/new', methods=['GET', 'POST'])
-@login_required
-def new_item(list_id):
-    # Ensure the list belongs to the current user
-    todo_list = TodoList.query.filter_by(id=list_id, user_id=current_user.id).first_or_404()
-    if request.method == 'POST':
-        description = request.form.get('description')
-        if not description:
-            flash('Description is required!', 'warning')
-            return redirect(url_for('new_item', list_id=list_id))
-        # For a top-level item, parent_id remains None
-        new_item = TodoItem(description=description, list_id=todo_list.id)
-        db.session.add(new_item)
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+        
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
+    todo_list = TodoList.query.get(list_id)
+    if not todo_list:
+        return jsonify({'error': 'List not found'}), 404
+        
+    if todo_list.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        # First, get all top-level items in the list
+        top_level_items = TodoItem.query.filter_by(list_id=list_id, parent_id=None).all()
+        
+        # For each top-level item, recursively delete its children
+        for item in top_level_items:
+            def delete_children(parent_item):
+                for child in parent_item.children:
+                    delete_children(child)
+                    db.session.delete(child)
+            
+            delete_children(item)
+            db.session.delete(item)
+        
+        # Finally, delete the list itself
+        db.session.delete(todo_list)
         db.session.commit()
-        flash('New task added successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    return render_template('new_item.html', list=todo_list)
+        
+        return jsonify({'message': 'List deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting list: {str(e)}")
+        return jsonify({'error': 'Failed to delete list'}), 500
 
-@app.route('/item/<int:item_id>/complete', methods=['POST'])
-@login_required
-def complete_item(item_id):
-    item = TodoItem.query.get_or_404(item_id)
-    # Ensure that the item belongs to a list owned by the current user.
-    if item.list.user_id != current_user.id:
-        flash('You are not authorized to modify this task.', 'danger')
-        return redirect(url_for('dashboard'))
-    item.complete = True
+@app.route('/list/<int:list_id>/item/new', methods=['POST', 'OPTIONS'])
+def new_item(list_id):
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+        
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
+    todo_list = TodoList.query.get(list_id)
+    if not todo_list:
+        return jsonify({'error': 'List not found'}), 404
+        
+    if todo_list.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    data = request.get_json()
+    if not data or 'description' not in data:
+        return jsonify({'error': 'Description is required'}), 400
+        
+    new_item = TodoItem(
+        description=data['description'],
+        list_id=list_id,
+        parent_id=data.get('parent_id'),  # Optional parent_id for hierarchical structure
+        complete=False
+    )
+    
+    # Check hierarchy depth
+    if data.get('parent_id'):
+        depth = 1
+        parent = TodoItem.query.get(data['parent_id'])
+        
+        while parent and parent.parent_id:
+            depth += 1
+            parent = TodoItem.query.get(parent.parent_id)
+            
+        if depth > 2:  # Limit to 3 levels (0, 1, 2)
+            return jsonify({'error': 'Maximum hierarchy depth (3) exceeded'}), 400
+    
+    db.session.add(new_item)
     db.session.commit()
-    flash('Task marked as complete!', 'success')
-    return redirect(url_for('dashboard'))
+    
+    return jsonify({
+        'id': new_item.id,
+        'description': new_item.description,
+        'complete': new_item.complete,
+        'parent_id': new_item.parent_id
+    }), 201
+
+@app.route('/item/<int:item_id>/complete', methods=['POST', 'OPTIONS'])
+def complete_item(item_id):
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+        
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
+    item = TodoItem.query.get(item_id)
+    if not item:
+        return jsonify({'error': 'Item not found'}), 404
+        
+    # Ensure the user owns the item
+    if item.list.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Toggle completion status
+    item.complete = not item.complete
+    db.session.commit()
+    
+    return jsonify({
+        'id': item.id,
+        'complete': item.complete
+    }), 200
 
 @app.route('/item/<int:parent_id>/subitem/new', methods=['GET', 'POST'])
 @login_required
@@ -292,20 +396,38 @@ def new_subitem(parent_id):
         return redirect(url_for('dashboard'))
     return render_template('new_subitem.html', parent=parent_item)
 
-@app.route('/item/<int:item_id>/edit', methods=['POST'])
-@login_required
+@app.route('/item/<int:item_id>/edit', methods=['POST', 'OPTIONS'])
 def edit_item(item_id):
-    item = TodoItem.query.get_or_404(item_id)
-    # Ensure the item belongs to a list owned by the current user
-    if item.list.user_id != current_user.id:
-        return {'error': 'Unauthorized'}, 403
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
         
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
+    item = TodoItem.query.get(item_id)
+    if not item:
+        return jsonify({'error': 'Item not found'}), 404
+        
+    # Ensure the user owns the item
+    if item.list.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
     data = request.get_json()
-    if 'description' in data:
-        item.description = data['description']
-        db.session.commit()
-        return {'message': 'Item updated successfully'}, 200
-    return {'error': 'Description is required'}, 400
+    if not data or 'description' not in data:
+        return jsonify({'error': 'Description is required'}), 400
+    
+    item.description = data['description']
+    db.session.commit()
+    
+    return jsonify({
+        'id': item.id,
+        'description': item.description
+    }), 200
 
 @app.route('/check-session', methods=['GET'])
 def check_session():
@@ -423,45 +545,6 @@ def get_lists():
         } for lst in lists]
     }), 200
 
-# Add a new item to a list
-@app.route('/api/lists/<int:list_id>/items', methods=['POST'])
-@login_required
-def add_item(list_id):
-    todo_list = TodoList.query.get_or_404(list_id)
-    if todo_list.user_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
-        
-    data = request.get_json()
-    if not data or 'description' not in data:
-        return jsonify({'error': 'Description is required'}), 400
-        
-    new_item = TodoItem(
-        description=data['description'],
-        list_id=list_id,
-        parent_id=data.get('parent_id')  # Optional parent_id for hierarchical structure
-    )
-    
-    # Check hierarchy depth
-    depth = 1
-    current = new_item
-    while data.get('parent_id'):
-        parent = TodoItem.query.get(data['parent_id'])
-        if not parent:
-            break
-        depth += 1
-        if depth > 3:
-            return jsonify({'error': 'Maximum hierarchy depth (3) exceeded'}), 400
-        current = parent
-        
-    db.session.add(new_item)
-    db.session.commit()
-    
-    return jsonify({
-        'id': new_item.id,
-        'description': new_item.description,
-        'complete': new_item.complete
-    }), 201
-
 # Toggle item completion status
 @app.route('/api/items/<int:item_id>/toggle', methods=['POST'])
 @login_required
@@ -479,28 +562,77 @@ def toggle_item(item_id):
     }), 200
 
 # Move item to different list
-@app.route('/api/items/<int:item_id>/move', methods=['POST'])
-@login_required
+@app.route('/item/<int:item_id>/move', methods=['POST', 'OPTIONS'])
 def move_item(item_id):
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+        
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
     data = request.get_json()
-    if not data or 'target_list_id' not in data:
+    target_list_id = data.get('target_list_id')
+    
+    if not target_list_id:
         return jsonify({'error': 'Target list ID is required'}), 400
         
-    item = TodoItem.query.get_or_404(item_id)
-    target_list = TodoList.query.get_or_404(data['target_list_id'])
+    item = TodoItem.query.get(item_id)
+    target_list = TodoList.query.get(target_list_id)
     
-    # Verify ownership of both lists
+    if not item or not target_list:
+        return jsonify({'error': 'Item or target list not found'}), 404
+        
+    # Ensure the user owns both the item and the target list
     if item.list.user_id != current_user.id or target_list.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
         
-    # Only allow moving top-level items
+    # Only allow moving top-level items (no parent)
     if item.parent_id is not None:
-        return jsonify({'error': 'Only top-level items can be moved'}), 400
-        
-    item.list_id = target_list.id
+        return jsonify({'error': 'Only top-level items can be moved between lists'}), 400
+    
+    # Move the item to the new list
+    item.list_id = target_list_id
     db.session.commit()
     
     return jsonify({'message': 'Item moved successfully'}), 200
+
+# Delete an item
+@app.route('/item/<int:item_id>/delete', methods=['POST', 'OPTIONS'])
+def delete_item(item_id):
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+        
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Authentication required'}), 401
+        
+    item = TodoItem.query.get(item_id)
+    if not item:
+        return jsonify({'error': 'Item not found'}), 404
+        
+    # Ensure the user owns the item
+    if item.list.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Delete the item and all its children recursively
+    def delete_item_recursive(item_to_delete):
+        for child in item_to_delete.children:
+            delete_item_recursive(child)
+        db.session.delete(item_to_delete)
+    
+    delete_item_recursive(item)
+    db.session.commit()
+    
+    return jsonify({'message': 'Item deleted successfully'}), 200
 
 @app.before_request
 def before_request():
