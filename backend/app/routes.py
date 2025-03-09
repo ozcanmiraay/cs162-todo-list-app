@@ -335,35 +335,35 @@ def new_item(list_id):
         'parent_id': new_item.parent_id
     }), 201
 
-@app.route('/item/<int:item_id>/complete', methods=['POST', 'OPTIONS'])
-def complete_item(item_id):
-    if request.method == "OPTIONS":
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Accept')
-        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, 200
-        
-    if not current_user.is_authenticated:
-        return jsonify({'error': 'Authentication required'}), 401
-        
-    item = TodoItem.query.get(item_id)
-    if not item:
-        return jsonify({'error': 'Item not found'}), 404
-        
+@app.route('/item/<int:item_id>/complete', methods=['POST'])
+@login_required
+def toggle_item_complete(item_id):
+    item = TodoItem.query.get_or_404(item_id)
+    
     # Ensure the user owns the item
     if item.list.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     
-    # Toggle completion status
+    # Toggle the completion status of this specific item only
     item.complete = not item.complete
+    
+    # Don't automatically update children's status
     db.session.commit()
     
-    return jsonify({
-        'id': item.id,
-        'complete': item.complete
-    }), 200
+    # Return the updated item with its children
+    def get_item_with_children(item):
+        result = {
+            'id': item.id,
+            'description': item.description,
+            'complete': item.complete,
+            'parent_id': item.parent_id,
+            'children': []
+        }
+        for child in item.children:
+            result['children'].append(get_item_with_children(child))
+        return result
+    
+    return jsonify(get_item_with_children(item)), 200
 
 @app.route('/item/<int:parent_id>/subitem/new', methods=['GET', 'POST'])
 @login_required
