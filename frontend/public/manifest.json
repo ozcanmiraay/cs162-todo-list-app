@@ -1,6 +1,6 @@
 {
-  "short_name": "Todo App",
-  "name": "Todo List Application",
+  "short_name": "TaskMaster",
+  "name": "TaskMaster Todo App",
   "icons": [
     {
       "src": "microsoft-to-do-app.png",

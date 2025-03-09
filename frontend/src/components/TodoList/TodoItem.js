@@ -4,20 +4,6 @@ import NewItemForm from './NewItemForm';
 import Tooltip from '../common/Tooltip';
 import TodoIcon from '../common/TodoIcon';
 
-/**
- * TodoItem component that renders an individual todo item with its
- * children, and provides functionality for editing, completing, and
- * managing sub-items.
- * 
- * @param {Object} item - The todo item data
- * @param {number} listId - ID of the list containing this item
- * @param {Function} onToggleComplete - Function to toggle completion status
- * @param {Function} onUpdateItem - Function to update item description
- * @param {Function} onDeleteItem - Function to delete the item
- * @param {Function} onAddSubItem - Function to add a sub-item
- * @param {Function} onMoveItem - Function to move item to another list
- * @param {Array} allLists - All available lists for move operations
- */
 const TodoItem = ({ 
   item, 
   listId, 
@@ -28,7 +14,6 @@ const TodoItem = ({
   onMoveItem,
   allLists
 }) => {
-  // State for UI controls
   const [isCollapsed, setIsCollapsed] = useState(item.isCollapsed || false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(item.description);
@@ -36,10 +21,7 @@ const TodoItem = ({
   const [showMoveOptions, setShowMoveOptions] = useState(false);
   const moveMenuRef = useRef(null);
 
-  /**
-   * Set up drag functionality using React DnD
-   * Only top-level items (depth === 0) can be dragged
-   */
+  // Set up drag functionality
   const [{ isDragging }, drag] = useDrag({
     type: 'TODO_ITEM',
     item: { 
@@ -53,9 +35,7 @@ const TodoItem = ({
     canDrag: () => item.depth === 0, // Only allow dragging top-level items
   });
 
-  /**
-   * Load collapse state from localStorage when component mounts
-   */
+  // Load collapse state from localStorage
   useEffect(() => {
     try {
       const collapseStateKey = `collapse_state_${item.id}`;
@@ -68,9 +48,7 @@ const TodoItem = ({
     }
   }, [item.id]);
 
-  /**
-   * Save collapse state to localStorage when it changes
-   */
+  // Save collapse state to localStorage when it changes
   useEffect(() => {
     if (item.isCollapsed !== isCollapsed) {
       const updateCollapseState = async () => {
@@ -86,9 +64,7 @@ const TodoItem = ({
     }
   }, [isCollapsed, item.id, item.isCollapsed]);
 
-  /**
-   * Close the move menu when clicking outside
-   */
+  // Close the move menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (moveMenuRef.current && !moveMenuRef.current.contains(event.target)) {
@@ -105,9 +81,6 @@ const TodoItem = ({
     };
   }, [showMoveOptions]);
 
-  /**
-   * Handle submission of edited item description
-   */
   const handleEditSubmit = () => {
     if (editedDescription.trim() && editedDescription !== item.description) {
       onUpdateItem(listId, item.id, editedDescription);
@@ -115,38 +88,26 @@ const TodoItem = ({
     setIsEditing(false);
   };
 
-  /**
-   * Handle adding a sub-item to this item
-   * @param {string} description - Description of the new sub-item
-   */
   const handleAddSubItem = (description) => {
     onAddSubItem(listId, item.id, description);
     setIsAddingSubItem(false);
   };
 
-  /**
-   * Handle moving this item to another list
-   * @param {number} targetListId - ID of the destination list
-   */
   const handleMoveItem = (targetListId) => {
     onMoveItem(item, targetListId);
     setShowMoveOptions(false);
   };
 
-  /**
-   * Handle toggling completion status with event propagation control
-   * @param {Event} e - Click event
-   */
+  const hasChildren = item.children && item.children.length > 0;
+  const canAddSubItems = item.depth < 2; // Limit hierarchy to 3 levels (0, 1, 2)
+  const isTopLevel = item.depth === 0; // Only top-level items can be moved
+
+  // Handle toggling completion status
   const handleToggleComplete = (e) => {
     // Stop event propagation to prevent parent handlers from being triggered
     e.stopPropagation();
     onToggleComplete(listId, item.id);
   };
-
-  // Determine item properties
-  const hasChildren = item.children && item.children.length > 0;
-  const canAddSubItems = item.depth < 2; // Limit hierarchy to 3 levels (0, 1, 2)
-  const isTopLevel = item.depth === 0; // Only top-level items can be moved
 
   return (
     <div 
@@ -160,7 +121,6 @@ const TodoItem = ({
     >
       <div className="todo-item-container">
         {isEditing ? (
-          // Editing mode UI
           <>
             <div className="edit-input-container">
               <input
@@ -196,7 +156,6 @@ const TodoItem = ({
             </div>
           </>
         ) : (
-          // Normal display mode UI
           <>
             <div className="todo-item-content">
               {hasChildren && (
@@ -260,16 +219,19 @@ const TodoItem = ({
                 </Tooltip>
               )}
               
-              <Tooltip text="Edit">
+              <Tooltip text="Edit item">
                 <button 
                   className="todo-action-button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditedDescription(item.description);
+                  }}
                 >
                   ✏️
                 </button>
               </Tooltip>
               
-              <Tooltip text="Delete">
+              <Tooltip text="Delete item">
                 <button 
                   className="todo-action-button"
                   onClick={() => onDeleteItem(listId, item.id)}
@@ -282,9 +244,8 @@ const TodoItem = ({
         )}
       </div>
       
-      {/* Form for adding sub-items */}
       {isAddingSubItem && (
-        <div className="add-subitem-form">
+        <div className="sub-item-form">
           <NewItemForm 
             onSubmit={handleAddSubItem}
             onCancel={() => setIsAddingSubItem(false)}
@@ -292,7 +253,6 @@ const TodoItem = ({
         </div>
       )}
       
-      {/* Render child items recursively */}
       {hasChildren && !isCollapsed && (
         <div className="nested-items">
           {item.children.map(child => (

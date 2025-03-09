@@ -17,7 +17,8 @@ A hierarchical todo list application built with React frontend and Flask backend
 
 ## Screenshots
 
-![Todo List App](frontend/public/microsoft-to-do-app.png)
+![Login Page](assets/login_page.png)
+![Register Page](assets/register_page.png)
 
 ## Prerequisites
 

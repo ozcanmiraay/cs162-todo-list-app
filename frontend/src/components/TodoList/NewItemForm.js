@@ -1,23 +1,10 @@
 import React, { useState } from 'react';
 
-/**
- * NewItemForm component that provides a form for adding new todo items
- * or sub-items.
- * 
- * @param {Function} onSubmit - Function to handle form submission with the item description
- * @param {Function} onCancel - Function to handle cancellation of the form
- */
 const NewItemForm = ({ onSubmit, onCancel }) => {
-  // State for the item description input
   const [description, setDescription] = useState('');
 
-  /**
-   * Handle form submission
-   * @param {Event} e - Form submission event
-   */
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (description.trim()) {
       onSubmit(description);
       setDescription('');
@@ -34,7 +21,6 @@ const NewItemForm = ({ onSubmit, onCancel }) => {
         onChange={(e) => setDescription(e.target.value)}
         autoFocus
       />
-      
       <div className="form-actions">
         <button 
           type="button" 
@@ -43,7 +29,6 @@ const NewItemForm = ({ onSubmit, onCancel }) => {
         >
           Cancel
         </button>
-        
         <button 
           type="submit" 
           className="form-submit-button"

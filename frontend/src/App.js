@@ -9,40 +9,32 @@ import './styles/Dashboard.css';
 import './styles/TodoList.css';
 import './styles/Responsive.css';
 
-/**
- * Main App component that handles authentication state and renders either
- * the Login screen or the Dashboard based on authentication status.
- * 
- * Uses React DnD for drag and drop functionality in the todo lists.
- */
 function App() {
-  // Authentication and user state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  /**
-   * Checks if the user has an active session on component mount
-   * by making a request to the backend's /check-session endpoint.
-   */
   const checkSession = async () => {
     try {
       console.log("Checking session, current cookies:", document.cookie);
       const response = await fetch('/check-session', {
         method: 'GET',
-        credentials: 'include', // Important for sending cookies with the request
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       });
-      
+
+      console.log("Session check response:", response);
+
       if (response.ok) {
         const data = await response.json();
-        if (data.authenticated) {
-          setIsLoggedIn(true);
-          setUser(data.user);
-        } else {
-          setIsLoggedIn(false);
-          setUser(null);
-        }
+        console.log('Session check successful:', data);
+        setUser(data.user);
+        setIsLoggedIn(true);
       } else {
+        console.log('Session check failed:', response.status);
         setIsLoggedIn(false);
         setUser(null);
       }
@@ -55,29 +47,39 @@ function App() {
     }
   };
 
-  // Check for an existing session when the component mounts
   useEffect(() => {
     checkSession();
   }, []);
 
-  /**
-   * Handles successful login by updating state with user data
-   * @param {Object} userData - User information returned from the server
-   */
-  const handleLogin = (userData) => {
-    setIsLoggedIn(true);
+  const handleLogin = async (userData) => {
+    console.log('Login successful, setting user data:', userData);
     setUser(userData);
+    setIsLoggedIn(true);
+    // Check session immediately after login
+    await checkSession();
   };
 
-  /**
-   * Handles user logout by clearing authentication state
-   */
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        setUser(null);
+        setIsLoggedIn(false);
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  // Show loading indicator while checking session
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -85,7 +87,6 @@ function App() {
   return (
     <div className="app">
       {isLoggedIn && user ? (
-        // Wrap Dashboard in DndProvider to enable drag and drop functionality
         <DndProvider backend={HTML5Backend}>
           <Dashboard onLogout={handleLogout} user={user} />
         </DndProvider>
