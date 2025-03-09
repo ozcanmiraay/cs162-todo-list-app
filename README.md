@@ -32,19 +32,21 @@ A hierarchical todo list application built with React frontend and Flask backend
 ### Backend Setup (macOS)
 
 ```
+cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
-python3 run.py
+python3 run.py (or, alternatively, just python run.py)
 ```
 
 ### Backend Setup (Windows)
 
 ```
+cd backend
 python3 -m venv venv
 venv\Scripts\activate.bat
 pip3 install -r requirements.txt
-python3 run.py
+python3 run.py (or, alternatively, just python run.py)
 ```
 
 The backend server will run on http://127.0.0.1:3001
@@ -52,6 +54,7 @@ The backend server will run on http://127.0.0.1:3001
 ### Frontend Setup
 
 ```
+cd frontend
 npm install
 npm start
 ```
