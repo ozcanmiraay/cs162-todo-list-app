@@ -3,6 +3,7 @@ import { useDrag } from 'react-dnd';
 import NewItemForm from './NewItemForm';
 import Tooltip from '../common/Tooltip';
 import TodoIcon from '../common/TodoIcon';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 
 const TodoItem = ({ 
   item, 
@@ -22,12 +23,13 @@ const TodoItem = ({
   const moveMenuRef = useRef(null);
 
   // Set up drag functionality
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag, preview] = useDrag({
     type: 'TODO_ITEM',
     item: { 
       id: item.id, 
       sourceListId: listId,
-      depth: item.depth || 0
+      depth: item.depth || 0,
+      description: item.description
     },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -81,6 +83,11 @@ const TodoItem = ({
     };
   }, [showMoveOptions]);
 
+  useEffect(() => {
+    // Use an empty image as the drag preview
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
+
   const handleEditSubmit = () => {
     if (editedDescription.trim() && editedDescription !== item.description) {
       onUpdateItem(listId, item.id, editedDescription);
@@ -118,6 +125,7 @@ const TodoItem = ({
         cursor: item.depth === 0 ? 'grab' : 'default'
       }}
       data-depth={item.depth || 0}
+      data-item-id={item.id}
     >
       <div className="todo-item-container">
         {isEditing ? (

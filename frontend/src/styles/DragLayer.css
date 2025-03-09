@@ -1,0 +1,40 @@
+.custom-drag-layer {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.drag-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 10px 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 3px solid #f78ca0;
+  max-width: 300px;
+  opacity: 0.9;
+}
+
+.drag-item-content {
+  display: flex;
+  align-items: center;
+}
+
+.drag-item-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffb6c1;
+  border-radius: 4px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.drag-item-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+} 

@@ -334,7 +334,7 @@
   align-items: center;
   flex-grow: 1;
   overflow: hidden;
-  max-width: calc(100% - 100px); /* Leave space for action buttons */
+  max-width: calc(100% - 120px);
 }
 
 .todo-checkbox {
@@ -387,11 +387,15 @@
 }
 
 .todo-text {
-  flex-grow: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  padding-right: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-overflow: initial;
+  padding-bottom: 3px;
+  max-width: 100%;
+  display: block;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
 }
 
 .todo-input {
@@ -409,8 +413,12 @@
 
 .todo-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-left: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .todo-action-button {
@@ -572,36 +580,47 @@
 /* Move options menu styling */
 .move-item-container {
   position: relative;
+  z-index: 100;
 }
 
 .move-options-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: white;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  min-width: 150px;
-  max-height: 200px; /* Set maximum height */
-  overflow-y: auto; /* Enable vertical scrolling */
-  padding: 5px 0;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  padding: 8px 0;
+  z-index: 1000;
+  min-width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-top: 5px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Special rule for items near the bottom of the page */
+.todo-item:nth-last-child(-n+2) .move-options-menu,
+.todo-item:last-child .move-options-menu {
+  bottom: 100%;
+  top: auto;
+  margin-top: 0;
+  margin-bottom: 5px;
 }
 
 /* Style the scrollbar for the move options menu */
 .move-options-menu::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .move-options-menu::-webkit-scrollbar-track {
-  background: #f9f9f9;
-  border-radius: 3px;
+  background: transparent;
 }
 
 .move-options-menu::-webkit-scrollbar-thumb {
   background: rgba(255, 182, 193, 0.5);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .move-options-menu::-webkit-scrollbar-thumb:hover {
@@ -609,35 +628,36 @@
 }
 
 .move-options-header {
-  padding: 10px 15px;
-  background: linear-gradient(90deg, rgba(247, 140, 160, 0.1), rgba(255, 182, 193, 0.1));
-  color: #f67a90;
+  padding: 8px 15px;
+  font-size: 13px;
+  color: #888;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 5px;
   font-weight: 600;
-  font-size: 14px;
-  border-bottom: 1px solid rgba(255, 182, 193, 0.1);
 }
 
 .move-option {
   display: block;
   width: 100%;
-  padding: 8px 15px;
   text-align: left;
+  padding: 10px 15px;
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(255, 182, 193, 0.1);
   font-size: 14px;
-  color: #555;
+  color: #333;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.move-option:last-child {
-  border-bottom: none;
+  transition: background-color 0.2s;
 }
 
 .move-option:hover {
   background-color: rgba(255, 182, 193, 0.1);
   color: #f67a90;
+}
+
+/* Add a fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Cancel button styling for consistency */
@@ -926,10 +946,32 @@
 /* Ensure text doesn't overflow */
 .todo-text {
   flex-grow: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   padding-right: 10px;
+  max-width: 100%;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+/* Style the scrollbar for todo-text */
+.todo-text::-webkit-scrollbar {
+  height: 2px;
+}
+
+.todo-text::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 1px;
+}
+
+.todo-text::-webkit-scrollbar-thumb {
+  background: rgba(255, 182, 193, 0.5);
+  border-radius: 1px;
+}
+
+.todo-text::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 182, 193, 0.7);
 }
 
 /* Move options menu styling */
@@ -939,7 +981,6 @@
 
 .move-options-menu {
   position: absolute;
-  top: 100%;
   right: 0;
   background: white;
   border-radius: 8px;
@@ -948,6 +989,12 @@
   z-index: 10;
   min-width: 150px;
   animation: fadeIn 0.2s ease-out;
+  max-height: 250px;
+  overflow-y: auto;
+  
+  /* Smart positioning - will appear below by default */
+  top: 100%;
+  margin-top: 5px;
 }
 
 .move-options-header {
@@ -1196,7 +1243,7 @@
   align-items: center;
   flex-grow: 1;
   overflow: hidden;
-  max-width: calc(100% - 100px); /* Leave space for action buttons */
+  max-width: calc(100% - 120px);
 }
 
 /* Special styling for list edit mode */
@@ -1359,6 +1406,9 @@
   align-items: center;
   gap: 8px;
   flex-grow: 1;
+  min-width: 0;
+  max-width: calc(100% - 10px);
+  overflow: hidden;
 }
 
 .todo-checkbox {

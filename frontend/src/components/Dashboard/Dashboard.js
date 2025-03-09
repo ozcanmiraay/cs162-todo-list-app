@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import CustomHTML5Backend from '../../utils/CustomHTML5Backend';
 import Header from './Header';
 import TodoDashboard from './TodoDashboard';
 import '../../styles/Dashboard.css';
+import CustomDragLayer from '../DragLayer/CustomDragLayer';
 
 const Dashboard = ({ user, onLogout }) => {
   const [lists, setLists] = useState([]);
@@ -290,8 +291,9 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={CustomHTML5Backend}>
       <div className="dashboard-container">
+        <CustomDragLayer />
         <Header user={user} onLogout={onLogout} />
         
         {error && (
