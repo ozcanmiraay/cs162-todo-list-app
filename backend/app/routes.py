@@ -17,6 +17,13 @@ from datetime import datetime, timedelta
 
 from flask import current_app as app
 
+"""
+API Routes for the Todo List Application
+
+This module contains all the API endpoints for the todo list application,
+including authentication, list management, and item operations.
+"""
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -34,6 +41,12 @@ def home():
 
 @app.route('/register', methods=['POST', 'OPTIONS'])
 def register():
+    """
+    Register a new user with username and password.
+    
+    Returns:
+        JSON response with user data or error message
+    """
     if request.method == "OPTIONS":
         response = make_response()
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
@@ -41,45 +54,45 @@ def register():
         response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response, 200
-
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username or not password:
-            return jsonify({'error': 'Username and password are required'}), 400
-
-        # Check if user already exists
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            print(f"User {username} already exists")  # Debug print
-            return jsonify({'error': 'Username already exists'}), 409  # Changed to 409 Conflict
-
-        # Create new user
-        new_user = User(
-            username=username,
-            password=generate_password_hash(password)
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        print(f"Successfully created user {username}")  # Debug print
         
-        response = jsonify({'message': 'Registration successful'})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, 201
-            
-    except Exception as e:
-        db.session.rollback()
-        print(f"Registration error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    data = request.get_json()
+    
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({'error': 'Username and password are required'}), 400
+        
+    # Check if username already exists
+    existing_user = User.query.filter_by(username=data['username']).first()
+    if existing_user:
+        return jsonify({'error': 'Username already exists'}), 400
+        
+    # Create new user with hashed password
+    hashed_password = generate_password_hash(data['password'])
+    new_user = User(username=data['username'], password=hashed_password)
+    
+    db.session.add(new_user)
+    db.session.commit()
+    
+    # Create a default todo list for the new user
+    default_list = TodoList(name="My First List", user_id=new_user.id)
+    db.session.add(default_list)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Registration successful',
+        'user': {
+            'id': new_user.id,
+            'username': new_user.username
+        }
+    }), 201
 
 @app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
+    """
+    Authenticate a user with username and password.
+    
+    Returns:
+        JSON response with user data or error message
+    """
     if request.method == "OPTIONS":
         response = make_response()
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
@@ -87,82 +100,39 @@ def login():
         response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response, 200
-
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username or not password:
-            return jsonify({'error': 'Username and password are required'}), 400
-
-        user = User.query.filter_by(username=username).first()
-        print(f"Login attempt for user: {username}")
         
-        if not user:
-            return jsonify({'error': 'User not found', 'code': 'USER_NOT_FOUND'}), 401
-        elif not check_password_hash(user.password, password):
-            return jsonify({'error': 'Incorrect password', 'code': 'INVALID_PASSWORD'}), 401
-            
-        # If we get here, both username and password are correct
-        login_user(user, remember=True)
-        session.permanent = True
+    data = request.get_json()
+    
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({'error': 'Username and password are required'}), 400
         
-        # Create response with explicit cookie settings
-        response = make_response(jsonify({
-            'message': 'Login successful',
-            'user': {
-                'id': user.id,
-                'username': user.username
-            }
-        }))
-
-        # Set CORS headers
-        response.headers.update({
-            'Access-Control-Allow-Origin': 'http://localhost:3000',
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Expose-Headers': 'Set-Cookie'
-        })
+    user = User.query.filter_by(username=data['username']).first()
+    
+    if not user or not check_password_hash(user.password, data['password']):
+        return jsonify({'error': 'Invalid username or password'}), 401
         
-        # Explicitly set the session cookie
-        if '_user_id' in session:
-            session_cookie = app.session_interface.get_signing_serializer(app).dumps(dict(session))
-            response.set_cookie(
-                'session',
-                session_cookie,
-                httponly=True,
-                secure=False,  # Must be False for HTTP
-                samesite='Lax',  # Changed back to 'Lax' for HTTP development
-                max_age=60*60*24*7,  # 7 days
-                path='/'
-            )
-        
-        print(f"User authenticated: {current_user.is_authenticated}")
-        print(f"Session data: {dict(session)}")
-        print(f"Response headers: {dict(response.headers)}")
-        
-        return response
-
-    except Exception as e:
-        print(f"Login error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': 'Server error occurred'}), 500
+    # Log in the user with Flask-Login
+    login_user(user)
+    
+    return jsonify({
+        'message': 'Login successful',
+        'user': {
+            'id': user.id,
+            'username': user.username
+        }
+    }), 200
 
 @app.route('/logout', methods=['POST'])
+@login_required
 def logout():
-    try:
-        logout_user()
-        response = jsonify({'message': 'Logged out successfully'})
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, 200
-    except Exception as e:
-        print(f"Logout error: {str(e)}")
-        return jsonify({'error': 'Logout failed'}), 500
+    """
+    Log out the current user.
+    
+    Returns:
+        JSON response confirming logout
+    """
+    logout_user()
+    return jsonify({'message': 'Logout successful'}), 200
 
 # Dashboard: show the user's todo lists
 @app.route('/dashboard')
@@ -284,6 +254,15 @@ def delete_list(list_id):
 
 @app.route('/list/<int:list_id>/item/new', methods=['POST', 'OPTIONS'])
 def new_item(list_id):
+    """
+    Create a new top-level todo item in a list.
+    
+    Args:
+        list_id (int): ID of the list to add the item to
+        
+    Returns:
+        JSON response with the new item data
+    """
     if request.method == "OPTIONS":
         response = make_response()
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
@@ -338,6 +317,15 @@ def new_item(list_id):
 @app.route('/item/<int:item_id>/complete', methods=['POST'])
 @login_required
 def toggle_item_complete(item_id):
+    """
+    Toggle the completion status of a todo item.
+    
+    Args:
+        item_id (int): ID of the item to toggle
+        
+    Returns:
+        JSON response with the updated item data
+    """
     item = TodoItem.query.get_or_404(item_id)
     
     # Ensure the user owns the item
@@ -431,10 +419,12 @@ def edit_item(item_id):
 
 @app.route('/check-session', methods=['GET'])
 def check_session():
-    print("Checking session for user:", current_user.is_authenticated)
-    print("Session data:", dict(session))
-    print("Request cookies:", request.cookies)
+    """
+    Check if the user has an active session.
     
+    Returns:
+        JSON response with authentication status and user data if authenticated
+    """
     if current_user.is_authenticated:
         return jsonify({
             'authenticated': True,
@@ -443,10 +433,8 @@ def check_session():
                 'username': current_user.username
             }
         }), 200
-    return jsonify({
-        'authenticated': False,
-        'error': 'Not authenticated'
-    }), 401
+    else:
+        return jsonify({'authenticated': False}), 200
 
 @app.route('/debug-session', methods=['GET'])
 def debug_session():
@@ -490,11 +478,13 @@ def debug_cookies():
 
 @app.errorhandler(404)
 def not_found_error(error):
+    """Handle 404 errors"""
     return jsonify({'error': 'Resource not found'}), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    db.session.rollback()
+    """Handle 500 errors"""
+    db.session.rollback()  # Roll back the session in case of database errors
     return jsonify({'error': 'Internal server error'}), 500
 
 # Create a new todo list
@@ -521,29 +511,28 @@ def create_list():
 @app.route('/api/lists', methods=['GET'])
 @login_required
 def get_lists():
+    """
+    Get all todo lists for the current user with their items.
+    
+    Returns:
+        JSON response with all lists and their items
+    """
     lists = TodoList.query.filter_by(user_id=current_user.id).all()
-    return jsonify({
-        'lists': [{
-            'id': lst.id,
-            'name': lst.name,
-            'items': [{
-                'id': item.id,
-                'description': item.description,
-                'complete': item.complete,
-                'collapsed': False,  # This will be managed on the frontend
-                'children': [{
-                    'id': subitem.id,
-                    'description': subitem.description,
-                    'complete': subitem.complete,
-                    'children': [{
-                        'id': subsubitem.id,
-                        'description': subsubitem.description,
-                        'complete': subsubitem.complete
-                    } for subsubitem in subitem.children]
-                } for subitem in item.children]
-            } for item in lst.items if item.parent_id is None]  # Only get top-level items
-        } for lst in lists]
-    }), 200
+    
+    # Process lists to include only top-level items (no parent)
+    processed_lists = []
+    for todo_list in lists:
+        top_level_items = []
+        for item in todo_list.items.filter_by(parent_id=None).all():
+            top_level_items.append(item.to_dict())
+            
+        processed_lists.append({
+            'id': todo_list.id,
+            'name': todo_list.name,
+            'items': top_level_items
+        })
+    
+    return jsonify({'lists': processed_lists}), 200
 
 # Toggle item completion status
 @app.route('/api/items/<int:item_id>/toggle', methods=['POST'])
