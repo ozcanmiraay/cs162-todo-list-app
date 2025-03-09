@@ -19,6 +19,7 @@ A hierarchical todo list application built with React frontend and Flask backend
 
 ![Login Page](assets/login_page.png)
 ![Register Page](assets/register_page.png)
+![Dashboard Page](assets/todolist_dashboard_page.png)
 
 ## Prerequisites
 
