@@ -4,6 +4,21 @@ import TodoItem from './TodoItem';
 import NewItemForm from './NewItemForm';
 import Tooltip from '../common/Tooltip';
 
+/**
+ * TodoList component that renders a single todo list with its items.
+ * Provides functionality for managing the list and its items.
+ * 
+ * @param {Object} list - The todo list data
+ * @param {Function} onUpdateList - Function to update list name
+ * @param {Function} onDeleteList - Function to delete the list
+ * @param {Function} onAddItem - Function to add a new item to the list
+ * @param {Function} onToggleComplete - Function to toggle item completion
+ * @param {Function} onUpdateItem - Function to update item description
+ * @param {Function} onDeleteItem - Function to delete an item
+ * @param {Function} onAddSubItem - Function to add a sub-item
+ * @param {Function} onMoveItem - Function to move an item to another list
+ * @param {Array} allLists - All available lists for move operations
+ */
 const TodoList = ({ 
   list, 
   onUpdateList, 
@@ -18,10 +33,13 @@ const TodoList = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(list.name);
-  const [showNewItemForm, setShowNewItemForm] = useState(false);
+  const [isAddingItem, setIsAddingItem] = useState(false);
   const [isOver, setIsOver] = useState(false);
 
-  // Set up drop functionality
+  /**
+   * Set up drop functionality using React DnD
+   * Allows dropping todo items into this list
+   */
   const [{ isOverCurrent }, drop] = useDrop({
     accept: 'TODO_ITEM',
     drop: (item) => {
@@ -51,6 +69,9 @@ const TodoList = ({
     // Make sure we're not calling onUpdateList here
   }, [list]);
 
+  /**
+   * Handle submission of edited list name
+   */
   const handleEditSubmit = () => {
     const trimmedName = editedName.trim();
     
@@ -62,9 +83,13 @@ const TodoList = ({
     setIsEditing(false);
   };
 
+  /**
+   * Handle adding a new item to the list
+   * @param {string} description - Description of the new item
+   */
   const handleAddItem = (description) => {
     onAddItem(list.id, description);
-    setShowNewItemForm(false);
+    setIsAddingItem(false);
   };
 
   return (
@@ -84,22 +109,24 @@ const TodoList = ({
                 onKeyPress={(e) => e.key === 'Enter' && handleEditSubmit()}
                 autoFocus
               />
-              <button 
-                className="save-edit-button"
-                onClick={handleEditSubmit}
-              >
-                Save
-              </button>
-            </div>
-            <div className="list-actions">
-              <Tooltip text="Cancel">
-                <button 
-                  className="list-action-button"
-                  onClick={() => setIsEditing(false)}
-                >
-                  ❌
-                </button>
-              </Tooltip>
+              <div className="list-actions">
+                <Tooltip text="Save">
+                  <button 
+                    className="list-action-button"
+                    onClick={handleEditSubmit}
+                  >
+                    ✓
+                  </button>
+                </Tooltip>
+                <Tooltip text="Cancel">
+                  <button 
+                    className="list-action-button"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    ✕
+                  </button>
+                </Tooltip>
+              </div>
             </div>
           </>
         ) : (
@@ -131,6 +158,24 @@ const TodoList = ({
       </div>
       
       <div className="list-items">
+        {/* Form for adding new items */}
+        {isAddingItem ? (
+          <div className="new-item-form">
+            <NewItemForm 
+              onSubmit={handleAddItem}
+              onCancel={() => setIsAddingItem(false)}
+            />
+          </div>
+        ) : (
+          <button 
+            className="add-item-button"
+            onClick={() => setIsAddingItem(true)}
+          >
+            + Add Item
+          </button>
+        )}
+        
+        {/* Render all top-level items */}
         {list.items && list.items.length > 0 ? (
           list.items.map(item => (
             <TodoItem
@@ -151,20 +196,6 @@ const TodoList = ({
           </div>
         )}
       </div>
-      
-      {showNewItemForm ? (
-        <NewItemForm 
-          onSubmit={handleAddItem}
-          onCancel={() => setShowNewItemForm(false)}
-        />
-      ) : (
-        <button 
-          className="add-item-button"
-          onClick={() => setShowNewItemForm(true)}
-        >
-          Add Item
-        </button>
-      )}
     </div>
   );
 };

@@ -5,22 +5,35 @@ import Header from './Header';
 import TodoDashboard from './TodoDashboard';
 import '../../styles/Dashboard.css';
 
+/**
+ * Dashboard component that displays the user's todo lists and provides
+ * functionality to manage lists and their items.
+ * 
+ * @param {Object} user - The current user object
+ * @param {Function} onLogout - Function to handle user logout
+ */
 const Dashboard = ({ user, onLogout }) => {
+  // State for todo lists and UI controls
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNewListModal, setShowNewListModal] = useState(false);
   const [newListName, setNewListName] = useState('');
 
+  // Fetch user's todo lists on component mount
   useEffect(() => {
     fetchLists();
   }, []);
 
+  /**
+   * Fetches all todo lists for the current user from the backend
+   */
   const fetchLists = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/lists', {
-        credentials: 'include'
+      const response = await fetch('/lists', {
+        method: 'GET',
+        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -28,7 +41,7 @@ const Dashboard = ({ user, onLogout }) => {
       }
       
       const data = await response.json();
-      setLists(data.lists || []);
+      setLists(data.lists);
       setError(null);
     } catch (err) {
       console.error('Error fetching lists:', err);
@@ -38,6 +51,10 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  /**
+   * Creates a new todo list with the provided name
+   * @param {Event} e - Form submission event
+   */
   const handleCreateList = async (e) => {
     e.preventDefault();
     
@@ -46,19 +63,20 @@ const Dashboard = ({ user, onLogout }) => {
     }
     
     try {
-      const response = await fetch('/api/lists', {
+      const response = await fetch('/lists/new', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ name: newListName }),
         credentials: 'include',
-        body: JSON.stringify({ name: newListName })
       });
       
       if (!response.ok) {
         throw new Error('Failed to create list');
       }
       
+      // Refresh lists and reset form
       fetchLists();
       setNewListName('');
       setShowNewListModal(false);
@@ -68,96 +86,68 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  /**
+   * Updates a todo list's name
+   * @param {number} listId - ID of the list to update
+   * @param {string} newName - New name for the list
+   */
   const handleUpdateList = async (listId, newName) => {
-    // More robust guard against automatic calls
-    if (listId === lists || 
-        (Array.isArray(listId) && listId.length === lists.length) || 
-        !newName) {
-      console.warn('Ignoring automatic call to handleUpdateList with lists array or missing name');
-      return;
-    }
-
-    console.log('Valid handleUpdateList call with:', { listId, newName });
-    
-    // Handle different types of listId input
-    let id = listId;
-    
-    // If it's an array, take the first element
-    if (Array.isArray(listId)) {
-      console.warn('listId is an array, using first element:', listId);
-      id = listId[0];
-    }
-    
-    // If it's an object with an id property, use that
-    if (typeof id === 'object' && id !== null && 'id' in id) {
-      console.log('Converting object to ID:', id);
-      id = id.id;
-    }
-    
-    // Final check to ensure we have a valid ID and name
-    if (typeof id !== 'number' && typeof id !== 'string') {
-      console.error('Invalid list ID after conversion:', id);
-      setError('Failed to update list: Invalid list ID');
-      return;
-    }
-    
-    if (!newName || typeof newName !== 'string' || !newName.trim()) {
-      console.error('Invalid list name:', newName);
-      setError('Failed to update list: Invalid list name');
-      return;
-    }
-    
     try {
-      console.log(`Sending PUT request to /api/lists/${id} with name: ${newName}`);
-      const response = await fetch(`/api/lists/${id}`, {
+      const response = await fetch(`/list/${listId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ name: newName }),
         credentials: 'include',
-        body: JSON.stringify({ name: newName })
       });
       
-      const responseData = await response.json();
-      console.log('Update list response:', responseData);
-      
       if (!response.ok) {
-        throw new Error(`Failed to update list: ${response.status} ${responseData.error || response.statusText}`);
+        throw new Error('Failed to update list');
       }
       
-      // Update the list in the state
+      // Update the list in state
       setLists(lists.map(list => 
-        list.id === id ? { ...list, name: newName } : list
+        list.id === listId ? { ...list, name: newName } : list
       ));
-      
-    } catch (error) {
-      console.error('Error updating list:', error);
+    } catch (err) {
+      console.error('Error updating list:', err);
       setError('Failed to update list. Please try again.');
     }
   };
 
+  /**
+   * Deletes a todo list
+   * @param {number} listId - ID of the list to delete
+   */
   const handleDeleteList = async (listId) => {
-    if (!window.confirm('Are you sure you want to delete this list and all its items?')) {
+    if (!window.confirm('Are you sure you want to delete this list?')) {
       return;
     }
     
     try {
-      const response = await fetch(`/list/${listId}/delete`, {
-        method: 'POST',
-        credentials: 'include'
+      const response = await fetch(`/list/${listId}`, {
+        method: 'DELETE',
+        credentials: 'include',
       });
       
       if (!response.ok) {
         throw new Error('Failed to delete list');
       }
       
-      fetchLists();
+      // Remove the list from state
+      setLists(lists.filter(list => list.id !== listId));
     } catch (err) {
       console.error('Error deleting list:', err);
       setError('Failed to delete list. Please try again.');
     }
   };
 
+  /**
+   * Adds a new item to a todo list
+   * @param {number} listId - ID of the list to add the item to
+   * @param {string} description - Description of the new item
+   */
   const handleAddItem = async (listId, description) => {
     try {
       const response = await fetch(`/list/${listId}/item/new`, {
@@ -165,14 +155,15 @@ const Dashboard = ({ user, onLogout }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ description }),
         credentials: 'include',
-        body: JSON.stringify({ description })
       });
       
       if (!response.ok) {
         throw new Error('Failed to add item');
       }
       
+      // Refresh lists to show the new item
       fetchLists();
     } catch (err) {
       console.error('Error adding item:', err);
@@ -180,31 +171,11 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleAddSubItem = async (listId, parentId, description) => {
-    try {
-      const response = await fetch(`/list/${listId}/item/new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ 
-          description,
-          parent_id: parentId
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to add sub-item');
-      }
-      
-      fetchLists();
-    } catch (err) {
-      console.error('Error adding sub-item:', err);
-      setError('Failed to add sub-item. Please try again.');
-    }
-  };
-
+  /**
+   * Toggles the completion status of a todo item
+   * @param {number} listId - ID of the list containing the item
+   * @param {number} itemId - ID of the item to toggle
+   */
   const handleToggleComplete = async (listId, itemId) => {
     try {
       const response = await fetch(`/item/${itemId}/complete`, {
@@ -216,6 +187,7 @@ const Dashboard = ({ user, onLogout }) => {
         throw new Error('Failed to update item');
       }
       
+      // Refresh lists to show updated completion status
       fetchLists();
     } catch (err) {
       console.error('Error toggling item completion:', err);
@@ -223,21 +195,28 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleUpdateItem = async (listId, itemId, newDescription) => {
+  /**
+   * Updates a todo item's description
+   * @param {number} listId - ID of the list containing the item
+   * @param {number} itemId - ID of the item to update
+   * @param {string} description - New description for the item
+   */
+  const handleUpdateItem = async (listId, itemId, description) => {
     try {
-      const response = await fetch(`/item/${itemId}/edit`, {
-        method: 'POST',
+      const response = await fetch(`/item/${itemId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ description }),
         credentials: 'include',
-        body: JSON.stringify({ description: newDescription })
       });
       
       if (!response.ok) {
         throw new Error('Failed to update item');
       }
       
+      // Refresh lists to show the updated item
       fetchLists();
     } catch (err) {
       console.error('Error updating item:', err);
@@ -245,14 +224,15 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  /**
+   * Deletes a todo item
+   * @param {number} listId - ID of the list containing the item
+   * @param {number} itemId - ID of the item to delete
+   */
   const handleDeleteItem = async (listId, itemId) => {
-    if (!window.confirm('Are you sure you want to delete this item and all its sub-items?')) {
-      return;
-    }
-    
     try {
-      const response = await fetch(`/item/${itemId}/delete`, {
-        method: 'POST',
+      const response = await fetch(`/item/${itemId}`, {
+        method: 'DELETE',
         credentials: 'include',
       });
       
@@ -260,6 +240,7 @@ const Dashboard = ({ user, onLogout }) => {
         throw new Error('Failed to delete item');
       }
       
+      // Refresh lists to remove the deleted item
       fetchLists();
     } catch (err) {
       console.error('Error deleting item:', err);
@@ -267,21 +248,52 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleMoveItem = async (item, targetListId) => {
+  /**
+   * Adds a sub-item to a parent todo item
+   * @param {number} listId - ID of the list containing the parent item
+   * @param {number} parentId - ID of the parent item
+   * @param {string} description - Description of the new sub-item
+   */
+  const handleAddSubItem = async (listId, parentId, description) => {
     try {
-      const response = await fetch(`/item/${item.id}/move`, {
+      const response = await fetch(`/item/${parentId}/subitem/new`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ description }),
         credentials: 'include',
-        body: JSON.stringify({ target_list_id: targetListId }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add sub-item');
+      }
+      
+      // Refresh lists to show the new sub-item
+      fetchLists();
+    } catch (err) {
+      console.error('Error adding sub-item:', err);
+      setError('Failed to add sub-item. Please try again.');
+    }
+  };
+
+  /**
+   * Moves a todo item to a different list
+   * @param {Object} item - The item to move
+   * @param {number} targetListId - ID of the destination list
+   */
+  const handleMoveItem = async (item, targetListId) => {
+    try {
+      const response = await fetch(`/item/${item.id}/move/${targetListId}`, {
+        method: 'POST',
+        credentials: 'include',
       });
       
       if (!response.ok) {
         throw new Error('Failed to move item');
       }
       
+      // Refresh lists to show the moved item
       fetchLists();
     } catch (err) {
       console.error('Error moving item:', err);
@@ -296,63 +308,51 @@ const Dashboard = ({ user, onLogout }) => {
         
         {error && (
           <div className="error-message">
-            <span>{error}</span>
+            {error}
             <button onClick={() => setError(null)}>×</button>
           </div>
         )}
         
-        <div className="dashboard-content">
-          <div className="dashboard-header">
-            <h2 className="dashboard-section-title">My Todo Lists</h2>
-            <button 
-              className="create-list-button"
-              onClick={() => setShowNewListModal(true)}
-            >
-              <span className="create-list-button-icon">+</span>
-              Create New List
-            </button>
-          </div>
-          
-          <TodoDashboard 
-            lists={lists}
-            loading={loading}
-            onUpdateList={handleUpdateList}
-            onDeleteList={handleDeleteList}
-            onAddItem={handleAddItem}
-            onToggleComplete={handleToggleComplete}
-            onUpdateItem={handleUpdateItem}
-            onDeleteItem={handleDeleteItem}
-            onAddSubItem={handleAddSubItem}
-            onMoveItem={handleMoveItem}
-            allLists={lists}
-          />
+        <div className="dashboard-actions">
+          <button 
+            className="create-list-button"
+            onClick={() => setShowNewListModal(true)}
+          >
+            Create New List
+          </button>
         </div>
         
-        {/* New list modal */}
+        <TodoDashboard 
+          lists={lists}
+          loading={loading}
+          onUpdateList={handleUpdateList}
+          onDeleteList={handleDeleteList}
+          onAddItem={handleAddItem}
+          onToggleComplete={handleToggleComplete}
+          onUpdateItem={handleUpdateItem}
+          onDeleteItem={handleDeleteItem}
+          onAddSubItem={handleAddSubItem}
+          onMoveItem={handleMoveItem}
+          allLists={lists}
+        />
+        
         {showNewListModal && (
           <div className="modal-overlay">
             <div className="modal-content">
-              <div className="modal-header">
-                <h2 className="modal-title">Create New List</h2>
-              </div>
-              <form onSubmit={handleCreateList} className="form-container">
+              <h2>Create New List</h2>
+              <form onSubmit={handleCreateList}>
                 <input
                   type="text"
-                  className="form-input"
-                  placeholder="List name"
+                  placeholder="List Name"
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
                   autoFocus
-                  required
                 />
-                <div className="form-actions">
+                <div className="modal-actions">
                   <button 
                     type="button" 
-                    className="form-cancel-button"
-                    onClick={() => {
-                      setShowNewListModal(false);
-                      setNewListName('');
-                    }}
+                    className="cancel-button"
+                    onClick={() => setShowNewListModal(false)}
                   >
                     Cancel
                   </button>
