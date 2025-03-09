@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import NewItemForm from './NewItemForm';
 import Tooltip from '../common/Tooltip';
+import TodoIcon from '../common/TodoIcon';
 
 const TodoItem = ({ 
   item, 
@@ -104,7 +105,7 @@ const TodoItem = ({
   return (
     <div 
       ref={drag}
-      className={`todo-item ${item.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''}`}
+      className={`todo-item ${item.complete ? 'completed' : ''} ${isDragging ? 'dragging' : ''}`}
       style={{ 
         opacity: isDragging ? 0.5 : 1,
         cursor: item.depth === 0 ? 'grab' : 'default'
@@ -150,13 +151,6 @@ const TodoItem = ({
         ) : (
           <>
             <div className="todo-item-content">
-              <input
-                type="checkbox"
-                className="todo-checkbox"
-                checked={item.complete || false}
-                onChange={() => onToggleComplete(listId, item.id)}
-              />
-              
               {hasChildren && (
                 <Tooltip text={isCollapsed ? "Expand" : "Collapse"}>
                   <button 
@@ -168,7 +162,11 @@ const TodoItem = ({
                 </Tooltip>
               )}
               
-              <span className="todo-text">{item.description}</span>
+              <TodoIcon 
+                item={item} 
+                onToggleComplete={onToggleComplete} 
+                listId={listId} 
+              />
             </div>
             
             <div className="todo-actions">
