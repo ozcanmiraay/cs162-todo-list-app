@@ -45,7 +45,7 @@ pip3 install -r requirements.txt
 python3 run.py
 ```
 
-The backend server will run on http://localhost:5000
+The backend server will run on http://127.0.0.1:3001
 
 ### Frontend Setup
 
