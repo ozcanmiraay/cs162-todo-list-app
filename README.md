@@ -4,7 +4,7 @@ A hierarchical todo list application built with React frontend and Flask backend
 
 ## Demo Video
 
-[Watch the demo video here](https://www.loom.com/share/6c8211d2a14b4c7889b9449e0771df16?sid=996299cb-97d8-498b-b74d-1534b5966796) - This 3-minute video demonstrates all the features of the application.
+[Watch the demo video here](https://www.loom.com/share/6c8211d2a14b4c7889b9449e0771df16?sid=996299cb-97d8-498b-b74d-1534b5966796) - This 4-minute video demonstrates all the features of the application.
 
 [Access the GitHub link of this application here](https://github.com/ozcanmiraay/cs162-todo-list-app.git) - You can clone the repository and run the application locally.
 
