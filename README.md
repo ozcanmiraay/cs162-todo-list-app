@@ -6,6 +6,8 @@ A hierarchical todo list application built with React frontend and Flask backend
 
 [Watch the demo video here](https://www.loom.com/share/your-video-id) - This 3-minute video demonstrates all the features of the application.
 
+[Access the GitHub link of this application here](https://github.com/ozcanmiraay/cs162-todo-list-app.git) - You can clone the repository and run the application locally.
+
 ## Features
 
 - User authentication (register, login, logout)
@@ -150,4 +152,31 @@ cs162-todo-list-app/
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
+
+# Use of AI Tools Statement
+
+In the development of this todo list application, I utilized the Claude AI assistant (version 3.5 Sonnet) for the following purposes:
+
+1. **Code Implementation Assistance**:
+   - Implementing drag and drop functionality for tasks
+   - Creating and styling the custom drag preview
+   - Fixing UI issues with dropdown menus and scrollable task names
+   - Debugging and resolving various frontend issues
+
+2. **Code Review and Optimization**:
+   - Reviewing and improving code structure
+   - Suggesting optimizations for better user experience
+   - Helping with CSS styling and layout improvements
+
+3. **Problem Solving**:
+   - Resolving specific issues like dropdown menu positioning
+   - Fixing visual bugs in the user interface
+   - Implementing proper task hierarchy display
+
+4. **Best Practices**:
+   - Guidance on React component structure
+   - Suggestions for state management
+   - Recommendations for CSS organization
+
+The AI was used as a programming assistant while I maintained full control over the application's design decisions, architecture, and implementation choices. All code suggestions were reviewed, understood, and integrated thoughtfully into the project. 
