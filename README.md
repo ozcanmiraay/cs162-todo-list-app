@@ -154,7 +154,7 @@ cs162-todo-list-app/
 
 This project is licensed under the MIT License.
 
-# Use of AI Tools Statement
+## Use of AI Tools Statement
 
 In the development of this todo list application, I utilized the Claude AI assistant (version 3.5 Sonnet) for the following purposes:
 
